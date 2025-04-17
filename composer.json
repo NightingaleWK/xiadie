@@ -17,6 +17,7 @@
         "laravel-lang/json-fallback": "^2.2",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "pxlrbt/filament-environment-indicator": "^2.1",
         "shuvroroy/filament-spatie-laravel-backup": "^2.2",
         "stechstudio/filament-impersonate": "^3.16"
     },
