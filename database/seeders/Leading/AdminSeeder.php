@@ -1,10 +1,11 @@
 <?php
 
-namespace Database\Seeders;
+namespace Database\Seeders\Leading;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AdminSeeder extends Seeder
 {
@@ -14,11 +15,11 @@ class AdminSeeder extends Seeder
     public function run(): void
     {
         User::create([
-            'name' => '管理员',
+            'name' => 'Administrator',
             'email' => 'admin@admin.com',
             'email_verified_at' => now(),
             'password' => Hash::make('Admin@123'),
-            'remember_token' => \Illuminate\Support\Str::random(10),
+            'remember_token' => Str::random(10),
         ]);
     }
 }
