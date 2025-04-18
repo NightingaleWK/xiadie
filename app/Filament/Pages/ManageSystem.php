@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Settings\SystemSetting;
+use App\Settings\GeneralSettings;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -13,7 +13,7 @@ class ManageSystem extends SettingsPage
 {
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
-    protected static string $settings = SystemSetting::class;
+    protected static string $settings = GeneralSettings::class;
 
     public function form(Form $form): Form
     {
