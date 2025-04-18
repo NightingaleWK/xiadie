@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Backups;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use Croustibat\FilamentJobsMonitor\FilamentJobsMonitorPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -63,6 +64,8 @@ class AdminPanelProvider extends PanelProvider
                     ->usingPage(Backups::class),
                 EnvironmentIndicatorPlugin::make()
                     ->visible(fn() => Auth::user()?->id === 1),
+                FilamentJobsMonitorPlugin::make()
+                    ->enableNavigation(),
             ])
             ->authMiddleware([
                 Authenticate::class,
