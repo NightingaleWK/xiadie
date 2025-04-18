@@ -19,6 +19,7 @@
         "laravel-lang/json-fallback": "^2.2",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "malzariey/filament-daterangepicker-filter": "^3.3",
         "owen-it/laravel-auditing": "^14.0",
         "pxlrbt/filament-environment-indicator": "^2.1",
         "shuvroroy/filament-spatie-laravel-backup": "^2.2",
