@@ -128,7 +128,7 @@ return [
     ],
 
     'providers' => ServiceProvider::defaultProviders()->merge([
-        // other service providers
+        OwenIt\Auditing\AuditingServiceProvider::class,
     ])->replace([
         BaseTranslation::class => JsonTranslation::class,
     ])->toArray(),

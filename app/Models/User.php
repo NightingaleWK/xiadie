@@ -14,11 +14,13 @@ use Spatie\Permission\Traits\HasRoles;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use OwenIt\Auditing\Contracts\Auditable;
+use OwenIt\Auditing\Auditable as AuditableTrait;
 
-class User extends Authenticatable implements HasMedia, FilamentUser
+class User extends Authenticatable implements HasMedia, FilamentUser, Auditable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, InteractsWithMedia;
+    use HasFactory, Notifiable, HasRoles, InteractsWithMedia, AuditableTrait;
 
     /**
      * The attributes that are mass assignable.
