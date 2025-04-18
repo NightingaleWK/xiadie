@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Backups;
 use Filament\Http\Middleware\Authenticate;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -58,8 +59,10 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
-                FilamentSpatieLaravelBackupPlugin::make(),
-                EnvironmentIndicatorPlugin::make()->visible(fn() => Auth::user()?->id === 1),
+                FilamentSpatieLaravelBackupPlugin::make()
+                    ->usingPage(Backups::class),
+                EnvironmentIndicatorPlugin::make()
+                    ->visible(fn() => Auth::user()?->id === 1),
             ])
             ->authMiddleware([
                 Authenticate::class,
