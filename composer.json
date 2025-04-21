@@ -23,6 +23,7 @@
         "owen-it/laravel-auditing": "^14.0",
         "pxlrbt/filament-environment-indicator": "^2.1",
         "shuvroroy/filament-spatie-laravel-backup": "^2.2",
+        "spatie/laravel-model-states": "^2.11",
         "stechstudio/filament-impersonate": "^3.16",
         "tapp/filament-auditing": "^3.1"
     },
