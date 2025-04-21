@@ -114,14 +114,17 @@ class WorkOrderResource extends Resource
                     ->label(__('work-orders.status')),
 
                 TextColumn::make('creator.name')
+                    ->placeholder('暂无')
                     ->label(__('work-orders.creator_user_id'))
                     ->sortable(),
 
                 TextColumn::make('assignedUser.name')
+                    ->placeholder('暂无')
                     ->label(__('work-orders.assigned_user_id'))
                     ->sortable(),
 
                 TextColumn::make('reviewer.name')
+                    ->placeholder('暂无')
                     ->label(__('work-orders.reviewer_user_id'))
                     ->sortable(),
 
