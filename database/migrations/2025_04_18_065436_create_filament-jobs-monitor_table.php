@@ -23,6 +23,8 @@ return new class extends Migration
             $table->integer('progress')->nullable();
             $table->text('exception_message')->nullable();
             $table->timestamps();
+
+            $table->comment('队列监控表');
         });
     }
 

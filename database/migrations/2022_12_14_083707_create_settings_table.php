@@ -19,6 +19,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['group', 'name']);
+
+            $table->comment('设置表');
         });
     }
 

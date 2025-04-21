@@ -32,6 +32,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index([$morphPrefix . '_id', $morphPrefix . '_type']);
+
+            $table->comment('审计表');
         });
     }
 

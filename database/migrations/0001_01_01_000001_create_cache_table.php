@@ -15,12 +15,16 @@ return new class extends Migration
             $table->string('key')->primary();
             $table->mediumText('value');
             $table->integer('expiration');
+
+            $table->comment('缓存表');
         });
 
         Schema::create('cache_locks', function (Blueprint $table) {
             $table->string('key')->primary();
             $table->string('owner');
             $table->integer('expiration');
+
+            $table->comment('缓存锁表');
         });
     }
 
