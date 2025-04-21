@@ -5,48 +5,30 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\OrganizationResource\Pages;
 use App\Filament\Resources\OrganizationResource\RelationManagers;
 use App\Models\Organization;
+use CodeWithDennis\FilamentSelectTree\SelectTree;
 use Filament\Forms;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 
 class OrganizationResource extends Resource
 {
     protected static ?string $model = Organization::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
-    protected static ?string $navigationLabel = '组织管理';
-
-    protected static ?string $modelLabel = '组织';
-
-    protected static ?string $pluralModelLabel = '组织';
-
-    protected static ?string $navigationGroup = '组织结构';
-
-    public static function getModelLabel(): string
-    {
-        return __('organizations.model.singular');
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return __('organizations.model.plural');
-    }
-
-    public static function getNavigationLabel(): string
-    {
-        return __('organizations.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return __('organizations.navigation_group');
-    }
+    protected static ?string $modelLabel = '组织结构';
+    protected static ?string $navigationGroup = '系统设置';
 
     public static function form(Form $form): Form
     {
@@ -54,29 +36,35 @@ class OrganizationResource extends Resource
             ->schema([
                 Section::make(__('organizations.sections.basic_info'))
                     ->schema([
-                        Forms\Components\TextInput::make('name')
+                        TextInput::make('name')
                             ->label(__('organizations.name'))
                             ->required()
                             ->maxLength(255),
-                        Forms\Components\TextInput::make('code')
+
+                        TextInput::make('code')
                             ->label(__('organizations.code'))
                             ->maxLength(255)
                             ->unique(ignoreRecord: true),
-                        Forms\Components\Textarea::make('description')
+
+                        Textarea::make('description')
                             ->label(__('organizations.description'))
                             ->columnSpanFull(),
                     ]),
 
                 Section::make(__('organizations.sections.hierarchy_info'))
                     ->schema([
-                        Forms\Components\Select::make('parent_id')
+                        SelectTree::make('parent_id')
                             ->label(__('organizations.parent_id'))
-                            ->relationship('parent', 'name'),
+                            ->required()
+                            ->relationship('parent', 'name', 'parent_id')  // 使用树建立 BelongsTo 关系
+                            ->searchable()  // 激活搜索功能
+                            ->enableBranchNode()  // 启用组选择
+                            ->withCount(),  // 在群组名称旁边显示下级数量
                     ]),
 
                 Section::make(__('organizations.sections.status_info'))
                     ->schema([
-                        Forms\Components\Toggle::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('organizations.is_active'))
                             ->required()
                             ->default(true),
@@ -88,29 +76,55 @@ class OrganizationResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->label(__('organizations.name'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('code')
+
+                TextColumn::make('code')
                     ->label(__('organizations.code'))
                     ->searchable(),
-                Tables\Columns\TextColumn::make('parent.name')
-                    ->label(__('organizations.parent_id')),
-                Tables\Columns\TextColumn::make('level')
+
+                TextColumn::make('hierarchy_path')
+                    ->label(__('organizations.hierarchy_path'))
+                    ->description(fn(Organization $record) => $record->parent ? '上级：' . $record->parent->name : null)
+                    ->getStateUsing(fn(Organization $record): string => $record->getFullHierarchyPath(' / '))
+                    ->searchable(false)
+                    ->wrap(),
+
+                TextColumn::make('level')
                     ->label(__('organizations.level'))
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\IconColumn::make('is_active')
+
+                IconColumn::make('is_active')
                     ->label(__('organizations.is_active'))
                     ->boolean(),
-                Tables\Columns\TextColumn::make('created_at')
+
+                TextColumn::make('created_at')
                     ->label(__('organizations.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Filter::make('parent_id_tree')
+                    ->form([
+                        SelectTree::make('parent_id')->label(trans('organizations.parent_id'))
+                            ->relationship('parent', 'name', 'parent_id')
+                            ->independent(false)
+                            ->enableBranchNode()
+                            ->searchable()
+                            ->withCount()
+                            ->placeholder('全部'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (isset($data['parent_id'])) {
+                            // 直接筛选父级ID等于所选组织ID的记录（只筛选直接子组织）
+                            return $query->where('parent_id', $data['parent_id']);
+                        }
+
+                        return $query; // 默认情况下不进行过滤
+                    }),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

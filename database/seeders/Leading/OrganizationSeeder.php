@@ -5,6 +5,7 @@ namespace Database\Seeders\Leading;
 use App\Models\Organization;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class OrganizationSeeder extends Seeder
 {
@@ -13,42 +14,88 @@ class OrganizationSeeder extends Seeder
      */
     public function run(): void
     {
-        // 创建几个顶级组织
-        $rootOrganizations = Organization::factory()
-            ->root()
-            ->count(3)
-            ->create()
-            ->each(function (Organization $organization) {
-                // 为每个顶级组织创建第二层组织
-                $this->createChildren($organization, 2, 3);
-            });
+        // 清空现有数据
+        DB::table('organizations')->truncate();
+
+        // 创建预定义的组织结构
+        $this->seedPredefinedOrganizations();
     }
 
     /**
-     * 递归创建子组织
-     * 
-     * @param Organization $parent 父组织
-     * @param int $depth 当前深度
-     * @param int $maxDepth 最大深度
-     * @param int $maxChildren 每层最大子组织数量
+     * 填充预定义的组织结构数据
      */
-    private function createChildren(Organization $parent, int $depth, int $maxDepth, int $maxChildren = 3): void
+    private function seedPredefinedOrganizations(): void
     {
-        if ($depth > $maxDepth) {
-            return;
+        // 创建顶级分类：企业
+        $enterprise = $this->createOrganization('企业', null);
+
+        // 创建企业下的子组织
+        $zhaoyuan = $this->createOrganization('招远中电智慧产业发展有限公司', $enterprise->id);
+        $this->createOrganization('运维管理部', $zhaoyuan->id);
+        $this->createOrganization('综合管理部', $zhaoyuan->id);
+        $this->createOrganization('财务管理部', $zhaoyuan->id);
+        $this->createOrganization('软件研发部', $zhaoyuan->id);
+
+        // 其他企业
+        $this->createOrganization('中国电子', $enterprise->id);
+        $this->createOrganization('中国电子云', $enterprise->id);
+        $this->createOrganization('华为', $enterprise->id);
+        $this->createOrganization('海康威视', $enterprise->id);
+        $this->createOrganization('大华', $enterprise->id);
+
+        // 创建顶级分类：政府
+        $government = $this->createOrganization('政府', null);
+
+        // 创建政府下的子组织
+        $shandong = $this->createOrganization('山东省', $government->id);
+        $yantai = $this->createOrganization('烟台市', $shandong->id);
+        $zhaoyuanCity = $this->createOrganization('招远市', $yantai->id);
+
+        // 创建招远市下的政府部门
+        $this->createOrganization('应急管理局', $zhaoyuanCity->id);
+        $this->createOrganization('市委办', $zhaoyuanCity->id);
+        $this->createOrganization('公安局', $zhaoyuanCity->id);
+        $this->createOrganization('环保局', $zhaoyuanCity->id);
+        $this->createOrganization('银监局', $zhaoyuanCity->id);
+    }
+
+    /**
+     * 创建单个组织
+     *
+     * @param string $name 组织名称
+     * @param int|null $parentId 父组织ID
+     * @return Organization 创建的组织
+     */
+    private function createOrganization(string $name, ?int $parentId): Organization
+    {
+        $code = $this->generateCode($name);
+
+        return Organization::create([
+            'name' => $name,
+            'code' => $code,
+            'description' => $name . '组织描述',
+            'parent_id' => $parentId,
+            'is_active' => true,
+        ]);
+    }
+
+    /**
+     * 为组织名称生成简单的代码
+     *
+     * @param string $name 组织名称
+     * @return string 生成的代码
+     */
+    private function generateCode(string $name): string
+    {
+        // 提取拼音首字母或使用随机字符串
+        $code = 'ORG_' . strtoupper(substr(md5($name), 0, 6));
+
+        // 确保代码唯一
+        $count = Organization::where('code', 'like', $code . '%')->count();
+        if ($count > 0) {
+            $code .= '_' . ($count + 1);
         }
 
-        // 为当前层级创建1到maxChildren个子组织
-        $childCount = rand(1, $maxChildren);
-        Organization::factory()
-            ->childOf($parent)
-            ->count($childCount)
-            ->create()
-            ->each(function (Organization $child) use ($depth, $maxDepth, $maxChildren) {
-                // 递归创建下一层子组织，随机决定是否继续创建子组织
-                if (rand(0, 10) > 3) { // 70%概率继续创建子组织
-                    $this->createChildren($child, $depth + 1, $maxDepth, $maxChildren);
-                }
-            });
+        return $code;
     }
 }

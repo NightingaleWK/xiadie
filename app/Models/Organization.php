@@ -77,6 +77,33 @@ class Organization extends Model
     }
 
     /**
+     * 获取组织的完整层级路径字符串
+     * 返回格式如: Root / Child / GrandChild / CurrentOrg
+     * 
+     * @param string $separator 层级之间的分隔符
+     * @return string
+     */
+    public function getFullHierarchyPath(string $separator = ' / '): string
+    {
+        // 如果是顶级组织，直接返回自己的名称
+        if (!$this->path || $this->path === ',') {
+            return $this->name;
+        }
+
+        // 获取所有祖先组织
+        $ancestors = $this->ancestors();
+
+        if ($ancestors->isEmpty()) {
+            return $this->name;
+        }
+
+        // 构建路径：祖先名称 + 当前组织名称
+        $pathNames = $ancestors->pluck('name')->push($this->name);
+
+        return $pathNames->implode($separator);
+    }
+
+    /**
      * 设置组织的路径和层级
      */
     public function setPathAndLevel()

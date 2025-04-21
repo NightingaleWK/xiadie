@@ -11,6 +11,7 @@
     "require": {
         "php": "^8.2",
         "bezhansalleh/filament-shield": "^3.3",
+        "codewithdennis/filament-select-tree": "^3.1",
         "croustibat/filament-jobs-monitor": "^2.6",
         "filament/filament": "^3.3",
         "filament/spatie-laravel-media-library-plugin": "^3.3",

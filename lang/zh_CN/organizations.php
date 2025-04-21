@@ -16,6 +16,7 @@ return [
     'code' => '编码',
     'description' => '描述',
     'parent_id' => '上级组织',
+    'hierarchy_path' => '组织层级',
     'level' => '层级',
     'path' => '路径',
     'is_active' => '激活状态',
