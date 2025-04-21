@@ -13,7 +13,13 @@ class ListOrganizations extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label(__('organizations.actions.create')),
         ];
+    }
+
+    public function getTitle(): string
+    {
+        return __('organizations.pages.index');
     }
 }
