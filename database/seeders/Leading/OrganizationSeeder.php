@@ -14,9 +14,6 @@ class OrganizationSeeder extends Seeder
      */
     public function run(): void
     {
-        // 清空现有数据
-        DB::table('organizations')->truncate();
-
         // 创建预定义的组织结构
         $this->seedPredefinedOrganizations();
     }

@@ -52,6 +52,14 @@ class Organization extends Model
     }
 
     /**
+     * 获取组织中的所有用户
+     */
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
+    /**
      * 获取所有祖先组织（从顶层到当前组织的父级）
      * 
      * @return \Illuminate\Database\Eloquent\Collection

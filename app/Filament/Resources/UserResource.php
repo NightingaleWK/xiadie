@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
+use App\Models\Organization;
+use CodeWithDennis\FilamentSelectTree\SelectTree;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -37,11 +39,31 @@ class UserResource extends Resource
                     ->required()
                     ->maxLength(255),
 
+                TextInput::make('password')
+                    ->label(__('users.password'))
+                    ->password()
+                    ->required()
+                    ->minLength(8)
+                    ->rule('confirmed'),
+
+                TextInput::make('password_confirmation')
+                    ->label(__('users.password_confirmation'))
+                    ->password()
+                    ->required()
+                    ->minLength(8),
+
                 TextInput::make('email')
                     ->label(__('users.email'))
                     ->email()
                     ->required()
                     ->maxLength(255),
+
+                SelectTree::make('organization_id')
+                    ->label(__('users.organization'))
+                    ->relationship('organization', 'name', 'parent_id')
+                    ->searchable()
+                    ->enableBranchNode()
+                    ->withCount(),
 
                 Select::make('roles')
                     ->relationship('roles', 'nick_name')
@@ -66,6 +88,15 @@ class UserResource extends Resource
                 TextColumn::make('email')
                     ->label(__('users.email'))
                     ->searchable(),
+
+                TextColumn::make('organization.name')
+                    ->label(__('users.organization'))
+                    ->description(fn($record) => $record->organization ?
+                        $record->organization->getFullHierarchyPath(' / ') :
+                        __('users.no_organization'))
+                    ->placeholder(__('users.no_organization'))
+                    ->searchable()
+                    ->sortable(),
 
                 TextColumn::make('roles.nick_name')
                     ->label(__('users.roles'))
@@ -92,7 +123,21 @@ class UserResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\Filter::make('organization')
+                    ->form([
+                        SelectTree::make('organization_id')
+                            ->label(__('users.organization'))
+                            ->relationship('organization', 'name', 'parent_id')
+                            ->searchable()
+                            ->enableBranchNode()
+                            ->withCount()
+                            ->placeholder('全部'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when($data['organization_id'], function ($query, $organizationId) {
+                            return $query->where('organization_id', $organizationId);
+                        });
+                    }),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
