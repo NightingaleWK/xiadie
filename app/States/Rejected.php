@@ -6,7 +6,7 @@ class Rejected extends WorkOrderState
 {
     public function color(): string
     {
-        return 'red';
+        return 'danger';
     }
 
     public function label(): string

@@ -3,11 +3,14 @@
 declare(strict_types=1);
 
 return [
+    // 导航
+    'navigation_group' => '维修',
+
     'title' => '标题',
     'description' => '描述',
     'status' => '状态',
     'creator_user_id' => '创建人',
-    'assigned_user_id' => '处理人',
+    'assigned_user_id' => '维修人',
     'reviewer_user_id' => '审核人',
     'repair_details' => '维修记录',
     'rejection_reason' => '驳回原因',
@@ -15,6 +18,13 @@ return [
     'archived_at' => '归档时间',
     'created_at' => '创建时间',
     'updated_at' => '更新时间',
+
+    // 模块定义
+    'sections' => [
+        'basic_info' => '基本信息',
+        'status_info' => '状态信息',
+        'repair_info' => '维修信息',
+    ],
 
     // 状态
     'statuses' => [

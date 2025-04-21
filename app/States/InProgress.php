@@ -6,7 +6,7 @@ class InProgress extends WorkOrderState
 {
     public function color(): string
     {
-        return 'yellow';
+        return 'warning';
     }
 
     public function label(): string

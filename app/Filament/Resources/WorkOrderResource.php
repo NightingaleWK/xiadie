@@ -19,68 +19,71 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Section;
+use Filament\Tables\Actions\ActionGroup;
+use Illuminate\Support\Facades\Auth;
 
 class WorkOrderResource extends Resource
 {
     protected static ?string $model = WorkOrder::class;
     protected static ?string $modelLabel = '工单';
     protected static ?string $navigationGroup = '维修';
+    protected static ?int $navigationSort = 1;
     protected static ?string $navigationIcon = 'heroicon-o-wrench-screwdriver';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Section::make('基本信息')
+                Section::make(__('work-orders.sections.basic_info'))
                     ->schema([
                         Forms\Components\TextInput::make('title')
                             ->required()
                             ->maxLength(255)
-                            ->label('标题'),
+                            ->label(__('work-orders.title')),
                         Forms\Components\Textarea::make('description')
                             ->required()
                             ->columnSpanFull()
-                            ->label('描述'),
+                            ->label(__('work-orders.description')),
                     ])->columns(1),
 
-                Section::make('状态信息')
+                Section::make(__('work-orders.sections.status_info'))
                     ->schema([
                         Select::make('status')
                             ->options([
-                                'pending_assignment' => '待指派',
-                                'assigned' => '已指派',
-                                'in_progress' => '维修中',
-                                'pending_review' => '待审核',
-                                'rejected' => '已驳回',
-                                'completed' => '已完成',
-                                'archived' => '已归档',
+                                'pending_assignment' => __('work-orders.statuses.pending_assignment'),
+                                'assigned' => __('work-orders.statuses.assigned'),
+                                'in_progress' => __('work-orders.statuses.in_progress'),
+                                'pending_review' => __('work-orders.statuses.pending_review'),
+                                'rejected' => __('work-orders.statuses.rejected'),
+                                'completed' => __('work-orders.statuses.completed'),
+                                'archived' => __('work-orders.statuses.archived'),
                             ])
                             ->required()
-                            ->label('状态'),
+                            ->label(__('work-orders.status')),
                         Select::make('creator_user_id')
                             ->relationship('creator', 'name')
                             ->required()
-                            ->label('创建人'),
+                            ->label(__('work-orders.creator_user_id')),
                         Select::make('assigned_user_id')
                             ->relationship('assignedUser', 'name')
-                            ->label('指派人'),
+                            ->label(__('work-orders.assigned_user_id')),
                         Select::make('reviewer_user_id')
                             ->relationship('reviewer', 'name')
-                            ->label('审核人'),
+                            ->label(__('work-orders.reviewer_user_id')),
                     ])->columns(2),
 
-                Section::make('维修信息')
+                Section::make(__('work-orders.sections.repair_info'))
                     ->schema([
                         Textarea::make('repair_details')
                             ->columnSpanFull()
-                            ->label('维修详情'),
+                            ->label(__('work-orders.repair_details')),
                         Textarea::make('rejection_reason')
                             ->columnSpanFull()
-                            ->label('驳回原因'),
+                            ->label(__('work-orders.rejection_reason')),
                         DateTimePicker::make('completed_at')
-                            ->label('完成时间'),
+                            ->label(__('work-orders.completed_at')),
                         DateTimePicker::make('archived_at')
-                            ->label('归档时间'),
+                            ->label(__('work-orders.archived_at')),
                     ])->columns(1),
             ]);
     }
@@ -93,65 +96,63 @@ class WorkOrderResource extends Resource
 
                 TextColumn::make('title')
                     ->searchable()
-                    ->label('标题'),
+                    ->wrap()
+                    ->label(__('work-orders.title')),
 
                 TextColumn::make('status')
                     ->badge()
                     ->colors([
-                        'warning' => 'pending_assignment',
+                        'info' => 'pending_assignment',
                         'primary' => 'assigned',
-                        'info' => 'in_progress',
-                        'success' => 'pending_review',
+                        'warning' => 'in_progress',
+                        'dark' => 'pending_review',
                         'danger' => 'rejected',
                         'success' => 'completed',
-                        'gray' => 'archived',
+                        'secondary' => 'archived',
                     ])
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'pending_assignment' => '待指派',
-                        'assigned' => '已指派',
-                        'in_progress' => '维修中',
-                        'pending_review' => '待审核',
-                        'rejected' => '已驳回',
-                        'completed' => '已完成',
-                        'archived' => '已归档',
-                    })
-                    ->label('状态'),
+                    ->formatStateUsing(fn(string $state): string => __("work-orders.statuses.{$state}"))
+                    ->label(__('work-orders.status')),
 
                 TextColumn::make('creator.name')
-                    ->label('创建人')
+                    ->label(__('work-orders.creator_user_id'))
                     ->sortable(),
 
                 TextColumn::make('assignedUser.name')
-                    ->label('指派人')
+                    ->label(__('work-orders.assigned_user_id'))
                     ->sortable(),
 
                 TextColumn::make('reviewer.name')
-                    ->label('审核人')
+                    ->label(__('work-orders.reviewer_user_id'))
                     ->sortable(),
 
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label(__('users.created_at'))
+                    ->dateTime('Y-m-d H:i:s')
                     ->sortable()
-                    ->label('创建时间'),
+                    ->toggleable(isToggledHiddenByDefault: false),
+
+                TextColumn::make('updated_at')
+                    ->label(__('users.updated_at'))
+                    ->dateTime('Y-m-d H:i:s')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'pending_assignment' => '待指派',
-                        'assigned' => '已指派',
-                        'in_progress' => '维修中',
-                        'pending_review' => '待审核',
-                        'rejected' => '已驳回',
-                        'completed' => '已完成',
-                        'archived' => '已归档',
+                        'pending_assignment' => __('work-orders.statuses.pending_assignment'),
+                        'assigned' => __('work-orders.statuses.assigned'),
+                        'in_progress' => __('work-orders.statuses.in_progress'),
+                        'pending_review' => __('work-orders.statuses.pending_review'),
+                        'rejected' => __('work-orders.statuses.rejected'),
+                        'completed' => __('work-orders.statuses.completed'),
+                        'archived' => __('work-orders.statuses.archived'),
                     ])
-                    ->label('状态'),
+                    ->label(__('work-orders.status')),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
                 Action::make('assign')
-                    ->label('指派')
+                    ->label(__('work-orders.actions.assign'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_assignment')
                     ->action(function (WorkOrder $record, array $data) {
                         $user = \App\Models\User::find($data['assigned_user_id']);
@@ -162,61 +163,78 @@ class WorkOrderResource extends Resource
                             ->relationship('assignedUser', 'name')
                             ->required()
                             ->native(false)
-                            ->label('指派人')
+                            ->label(__('work-orders.assigned_user_id'))
                             ->getOptionLabelFromRecordUsing(fn($record) => $record->name . ' - ' . ($record->roles->first()?->nick_name ?? $record->roles->first()?->name ?? '无角色')),
                     ]),
 
                 Action::make('start_repair')
-                    ->label('开始维修')
+                    ->label(__('work-orders.actions.start_repair'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'assigned')
                     ->action(function (WorkOrder $record) {
                         $record->startRepair();
                     }),
 
                 Action::make('submit_review')
-                    ->label('提交审核')
+                    ->label(__('work-orders.actions.submit_review'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'in_progress')
                     ->form([
                         Textarea::make('repair_details')
                             ->required()
-                            ->label('维修详情'),
+                            ->label(__('work-orders.repair_details')),
                     ])
                     ->action(function (WorkOrder $record, array $data) {
                         $record->submitForReview($data['repair_details']);
                     }),
 
                 Action::make('approve')
-                    ->label('通过')
+                    ->label(__('work-orders.actions.approve'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_review')
                     ->action(function (WorkOrder $record) {
+                        $record->reviewer_user_id = Auth::id();
                         $record->approve();
                     }),
 
                 Action::make('reject')
-                    ->label('驳回')
+                    ->label(__('work-orders.actions.reject'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_review')
                     ->form([
                         Textarea::make('rejection_reason')
                             ->required()
-                            ->label('驳回原因'),
+                            ->label(__('work-orders.rejection_reason')),
                     ])
                     ->action(function (WorkOrder $record, array $data) {
+                        $record->reviewer_user_id = Auth::id();
                         $record->reject($data['rejection_reason']);
                     }),
 
                 Action::make('restart_repair')
-                    ->label('重新维修')
+                    ->label(__('work-orders.actions.restart_repair'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'rejected')
                     ->action(function (WorkOrder $record) {
                         $record->restartRepair();
                     }),
 
                 Action::make('archive')
-                    ->label('归档')
+                    ->label(__('work-orders.actions.archive'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'completed')
                     ->action(function (WorkOrder $record) {
                         $record->archive();
                     }),
+
+                ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make()
+                        ->visible(function (WorkOrder $record) {
+                            // 超级管理员可以随时编辑
+                            if (Auth::user()->hasRole('super_admin')) {
+                                return true;
+                            }
+
+                            // 创建者只能在pending_assignment状态下编辑
+                            return Auth::id() === $record->creator_user_id &&
+                                $record->status->getValue() === 'pending_assignment';
+                        }),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -6,7 +6,7 @@ class PendingReview extends WorkOrderState
 {
     public function color(): string
     {
-        return 'orange';
+        return 'dark';
     }
 
     public function label(): string

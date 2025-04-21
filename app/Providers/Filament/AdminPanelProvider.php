@@ -59,7 +59,7 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->maxContentWidth(MaxWidth::Full)
+            // ->maxContentWidth(MaxWidth::Full)
             ->plugins([
                 FilamentShieldPlugin::make(),
                 FilamentSpatieLaravelBackupPlugin::make()

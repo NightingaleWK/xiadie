@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 return [
+    // 通用
+    'title' => '工单历史',
+
     'work_order_id' => '工单ID',
     'user_id' => '操作人',
     'action' => '操作',

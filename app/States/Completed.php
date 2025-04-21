@@ -6,7 +6,7 @@ class Completed extends WorkOrderState
 {
     public function color(): string
     {
-        return 'green';
+        return 'success';
     }
 
     public function label(): string

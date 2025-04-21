@@ -6,7 +6,7 @@ class PendingAssignment extends WorkOrderState
 {
     public function color(): string
     {
-        return 'gray';
+        return 'info';
     }
 
     public function label(): string
