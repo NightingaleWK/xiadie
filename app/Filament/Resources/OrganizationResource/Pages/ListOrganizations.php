@@ -14,12 +14,6 @@ class ListOrganizations extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label(__('organizations.actions.create')),
         ];
-    }
-
-    public function getTitle(): string
-    {
-        return __('organizations.pages.index');
     }
 }

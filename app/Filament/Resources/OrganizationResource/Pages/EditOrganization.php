@@ -14,18 +14,7 @@ class EditOrganization extends EditRecord
     {
         return [
             Actions\ViewAction::make(),
-            Actions\DeleteAction::make()
-                ->label(__('organizations.actions.delete')),
+            Actions\DeleteAction::make(),
         ];
-    }
-
-    public function getTitle(): string
-    {
-        return __('organizations.pages.edit');
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
     }
 }

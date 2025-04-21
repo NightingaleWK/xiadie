@@ -14,14 +14,6 @@ class ViewOrganization extends ViewRecord
     {
         return [
             Actions\EditAction::make()
-                ->label(__('organizations.actions.edit')),
-            Actions\DeleteAction::make()
-                ->label(__('organizations.actions.delete')),
         ];
-    }
-
-    public function getTitle(): string
-    {
-        return __('organizations.pages.view');
     }
 }
