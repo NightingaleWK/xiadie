@@ -26,7 +26,6 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
     protected static ?string $modelLabel = '用户';
     protected static ?string $navigationGroup = '认证';
-    protected static ?string $recordTitleAttribute = 'name';
     protected static ?string $navigationIcon = 'heroicon-o-user';
 
     public static function form(Form $form): Form
@@ -45,10 +44,12 @@ class UserResource extends Resource
                     ->maxLength(255),
 
                 Select::make('roles')
-                    ->relationship('roles', 'name')
+                    ->relationship('roles', 'nick_name')
                     ->multiple()
                     ->preload()
-                    ->searchable(),
+                    ->searchable()
+                    ->optionsLimit(100)
+                    ->getOptionLabelFromRecordUsing(fn($record) => $record->nick_name ?? $record->name ?? 'Unknown'),
             ]);
     }
 
@@ -56,6 +57,8 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('id'),
+
                 TextColumn::make('name')
                     ->label(__('users.name'))
                     ->searchable(),
@@ -63,6 +66,18 @@ class UserResource extends Resource
                 TextColumn::make('email')
                     ->label(__('users.email'))
                     ->searchable(),
+
+                TextColumn::make('roles.nick_name')
+                    ->label(__('users.roles'))
+                    ->badge()
+                    ->color(fn(string $state, $record): string => match ($record->roles->first()?->name ?? '') {
+                        'admin', 'super_admin' => 'danger',
+                        'creator' => 'warning',
+                        'repairer' => 'info',
+                        'reviewer' => 'success',
+                        'archiver' => 'gray',
+                        default => 'primary',
+                    }),
 
                 TextColumn::make('created_at')
                     ->label(__('users.created_at'))
