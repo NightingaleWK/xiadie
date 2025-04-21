@@ -154,20 +154,25 @@ class WorkOrderResource extends Resource
                     ->label('指派')
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_assignment')
                     ->action(function (WorkOrder $record, array $data) {
-                        $record->assignTo($data['assigned_user_id']);
+                        $user = \App\Models\User::find($data['assigned_user_id']);
+                        $record->assignTo($user);
                     })
                     ->form([
                         Select::make('assigned_user_id')
                             ->relationship('assignedUser', 'name')
                             ->required()
-                            ->label('指派人'),
+                            ->native(false)
+                            ->label('指派人')
+                            ->getOptionLabelFromRecordUsing(fn($record) => $record->name . ' - ' . ($record->roles->first()?->nick_name ?? $record->roles->first()?->name ?? '无角色')),
                     ]),
+
                 Action::make('start_repair')
                     ->label('开始维修')
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'assigned')
                     ->action(function (WorkOrder $record) {
                         $record->startRepair();
                     }),
+
                 Action::make('submit_review')
                     ->label('提交审核')
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'in_progress')
@@ -179,12 +184,14 @@ class WorkOrderResource extends Resource
                     ->action(function (WorkOrder $record, array $data) {
                         $record->submitForReview($data['repair_details']);
                     }),
+
                 Action::make('approve')
                     ->label('通过')
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_review')
                     ->action(function (WorkOrder $record) {
                         $record->approve();
                     }),
+
                 Action::make('reject')
                     ->label('驳回')
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_review')
@@ -196,6 +203,14 @@ class WorkOrderResource extends Resource
                     ->action(function (WorkOrder $record, array $data) {
                         $record->reject($data['rejection_reason']);
                     }),
+
+                Action::make('restart_repair')
+                    ->label('重新维修')
+                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'rejected')
+                    ->action(function (WorkOrder $record) {
+                        $record->restartRepair();
+                    }),
+
                 Action::make('archive')
                     ->label('归档')
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'completed')

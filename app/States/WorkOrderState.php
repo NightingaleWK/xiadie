@@ -2,8 +2,10 @@
 
 namespace App\States;
 
+use ReflectionClass;
 use Spatie\ModelStates\State;
 use Spatie\ModelStates\StateConfig;
+use Illuminate\Support\Str;
 
 abstract class WorkOrderState extends State
 {
@@ -27,8 +29,8 @@ abstract class WorkOrderState extends State
 
     public static function getMorphClass(): string
     {
-        $shortClassName = (new \ReflectionClass(static::class))->getShortName();
+        $shortClassName = (new ReflectionClass(static::class))->getShortName();
 
-        return \Illuminate\Support\Str::snake($shortClassName);
+        return Str::snake($shortClassName);
     }
 }
