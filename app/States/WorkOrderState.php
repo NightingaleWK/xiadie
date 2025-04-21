@@ -9,6 +9,8 @@ abstract class WorkOrderState extends State
 {
     abstract public function color(): string;
 
+    abstract public function label(): string;
+
     public static function config(): StateConfig
     {
         return parent::config()
@@ -21,5 +23,12 @@ abstract class WorkOrderState extends State
             ->allowTransition(PendingReview::class, Rejected::class)
             ->allowTransition(Rejected::class, InProgress::class)
             ->allowTransition(Completed::class, Archived::class);
+    }
+
+    public static function getMorphClass(): string
+    {
+        $shortClassName = (new \ReflectionClass(static::class))->getShortName();
+
+        return \Illuminate\Support\Str::snake($shortClassName);
     }
 }

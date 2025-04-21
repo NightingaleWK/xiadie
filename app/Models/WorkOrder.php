@@ -56,11 +56,9 @@ class WorkOrder extends Model
     /**
      * 状态机配置
      */
-    protected function registerStates(): void
-    {
-        $this
-            ->addState('status', WorkOrderState::class);
-    }
+    protected $casts = [
+        'status' => WorkOrderState::class,
+    ];
 
     /**
      * 获取工单创建者

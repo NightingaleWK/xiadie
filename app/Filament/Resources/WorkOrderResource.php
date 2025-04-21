@@ -152,7 +152,7 @@ class WorkOrderResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Action::make('assign')
                     ->label('指派')
-                    ->visible(fn(WorkOrder $record) => $record->status === 'pending_assignment')
+                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_assignment')
                     ->action(function (WorkOrder $record, array $data) {
                         $record->assignTo($data['assigned_user_id']);
                     })
@@ -164,13 +164,13 @@ class WorkOrderResource extends Resource
                     ]),
                 Action::make('start_repair')
                     ->label('开始维修')
-                    ->visible(fn(WorkOrder $record) => $record->status === 'assigned')
+                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'assigned')
                     ->action(function (WorkOrder $record) {
                         $record->startRepair();
                     }),
                 Action::make('submit_review')
                     ->label('提交审核')
-                    ->visible(fn(WorkOrder $record) => $record->status === 'in_progress')
+                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'in_progress')
                     ->form([
                         Textarea::make('repair_details')
                             ->required()
@@ -181,13 +181,13 @@ class WorkOrderResource extends Resource
                     }),
                 Action::make('approve')
                     ->label('通过')
-                    ->visible(fn(WorkOrder $record) => $record->status === 'pending_review')
+                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_review')
                     ->action(function (WorkOrder $record) {
                         $record->approve();
                     }),
                 Action::make('reject')
                     ->label('驳回')
-                    ->visible(fn(WorkOrder $record) => $record->status === 'pending_review')
+                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_review')
                     ->form([
                         Textarea::make('rejection_reason')
                             ->required()
@@ -198,7 +198,7 @@ class WorkOrderResource extends Resource
                     }),
                 Action::make('archive')
                     ->label('归档')
-                    ->visible(fn(WorkOrder $record) => $record->status === 'completed')
+                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'completed')
                     ->action(function (WorkOrder $record) {
                         $record->archive();
                     }),
