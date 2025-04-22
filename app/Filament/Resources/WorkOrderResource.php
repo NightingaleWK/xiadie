@@ -351,7 +351,11 @@ class WorkOrderResource extends Resource
             ->actions([
                 Action::make('assign')
                     ->label(__('work-orders.actions.assign'))
-                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_assignment')
+                    ->visible(function (WorkOrder $record) {
+                        // 只允许工单创建者进行指派，且工单状态为待指派
+                        return Auth::user()->hasRole('creator') &&
+                            $record->status->getValue() === 'pending_assignment';
+                    })
                     ->requiresConfirmation()
                     ->icon('heroicon-o-user-plus')
                     ->color('primary')
@@ -375,7 +379,12 @@ class WorkOrderResource extends Resource
 
                 Action::make('start_repair')
                     ->label(__('work-orders.actions.start_repair'))
-                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'assigned')
+                    ->visible(function (WorkOrder $record) {
+                        // 只允许维修人员开始维修，且工单状态为已指派
+                        return Auth::user()->hasRole('repairer') &&
+                            $record->status->getValue() === 'assigned' &&
+                            $record->assigned_user_id === Auth::id();
+                    })
                     ->requiresConfirmation()
                     ->icon('heroicon-o-play')
                     ->color('success')
@@ -385,7 +394,12 @@ class WorkOrderResource extends Resource
 
                 Action::make('refuse_assignment')
                     ->label(__('work-orders.actions.refuse_assignment'))
-                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'assigned')
+                    ->visible(function (WorkOrder $record) {
+                        // 只允许维修人员拒绝指派，且工单状态为已指派
+                        return Auth::user()->hasRole('repairer') &&
+                            $record->status->getValue() === 'assigned' &&
+                            $record->assigned_user_id === Auth::id();
+                    })
                     ->color('danger')
                     ->icon('heroicon-o-x-circle')
                     ->requiresConfirmation()
@@ -401,7 +415,12 @@ class WorkOrderResource extends Resource
 
                 Action::make('submit_review')
                     ->label(__('work-orders.actions.submit_review'))
-                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'in_progress')
+                    ->visible(function (WorkOrder $record) {
+                        // 只允许维修人员提交审核，且工单状态为维修中
+                        return Auth::user()->hasRole('repairer') &&
+                            $record->status->getValue() === 'in_progress' &&
+                            $record->assigned_user_id === Auth::id();
+                    })
                     ->requiresConfirmation()
                     ->icon('heroicon-o-clipboard-document-check')
                     ->color('primary')
@@ -416,7 +435,11 @@ class WorkOrderResource extends Resource
 
                 Action::make('approve')
                     ->label(__('work-orders.actions.approve'))
-                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_review')
+                    ->visible(function (WorkOrder $record) {
+                        // 只允许审核人员通过审核，且工单状态为待审核
+                        return Auth::user()->hasRole('reviewer') &&
+                            $record->status->getValue() === 'pending_review';
+                    })
                     ->requiresConfirmation()
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
@@ -432,7 +455,11 @@ class WorkOrderResource extends Resource
 
                 Action::make('reject')
                     ->label(__('work-orders.actions.reject'))
-                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_review')
+                    ->visible(function (WorkOrder $record) {
+                        // 只允许审核人员驳回，且工单状态为待审核
+                        return Auth::user()->hasRole('reviewer') &&
+                            $record->status->getValue() === 'pending_review';
+                    })
                     ->requiresConfirmation()
                     ->color('danger')
                     ->icon('heroicon-o-x-circle')
@@ -448,7 +475,12 @@ class WorkOrderResource extends Resource
 
                 Action::make('restart_repair')
                     ->label(__('work-orders.actions.restart_repair'))
-                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'rejected')
+                    ->visible(function (WorkOrder $record) {
+                        // 只允许维修人员重新维修，且工单状态为已驳回
+                        return Auth::user()->hasRole('repairer') &&
+                            $record->status->getValue() === 'rejected' &&
+                            $record->assigned_user_id === Auth::id();
+                    })
                     ->requiresConfirmation()
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
@@ -458,7 +490,11 @@ class WorkOrderResource extends Resource
 
                 Action::make('archive')
                     ->label(__('work-orders.actions.archive'))
-                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'completed')
+                    ->visible(function (WorkOrder $record) {
+                        // 只允许归档人员归档，且工单状态为已完成
+                        return Auth::user()->hasRole('archiver') &&
+                            $record->status->getValue() === 'completed';
+                    })
                     ->requiresConfirmation()
                     ->icon('heroicon-o-archive-box')
                     ->color('gray')
@@ -472,16 +508,20 @@ class WorkOrderResource extends Resource
                     }),
 
                 ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\ViewAction::make()
+                        ->visible(function (WorkOrder $record) {
+                            // 所有角色都可以查看
+                            return true;
+                        }),
                     Tables\Actions\EditAction::make()
                         ->visible(function (WorkOrder $record) {
-                            // 超级管理员可以随时编辑
+                            // 只有超级管理员和工单创建者可以编辑，且创建者只能在待指派状态下编辑
                             if (Auth::user()->hasRole('super_admin')) {
                                 return true;
                             }
 
-                            // 创建者只能在pending_assignment状态下编辑
-                            return Auth::id() === $record->creator_user_id &&
+                            return Auth::user()->hasRole('creator') &&
+                                Auth::id() === $record->creator_user_id &&
                                 $record->status->getValue() === 'pending_assignment';
                         }),
                 ]),
@@ -498,7 +538,7 @@ class WorkOrderResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\WorkOrderHistoriesRelationManager::class,
+            RelationManagers\WorkOrderHistoriesRelationManager::make(),
         ];
     }
 
