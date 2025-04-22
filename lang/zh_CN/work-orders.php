@@ -14,7 +14,7 @@ return [
     'reviewer_user_id' => '审核人',
     'repair_details' => '维修记录',
     'rejection_reason' => '驳回原因',
-    'completed_at' => '完成时间',
+    'completed_at' => '审核通过时间',
     'archived_at' => '归档时间',
     'created_at' => '创建时间',
     'updated_at' => '更新时间',
@@ -28,6 +28,17 @@ return [
 
     // 状态
     'statuses' => [
+        'pending_assignment' => '📋 待指派',
+        'assigned' => '👤 已指派',
+        'in_progress' => '🔧 维修中',
+        'pending_review' => '🔍 待审核',
+        'rejected' => '❌ 已驳回',
+        'completed' => '✅ 已完成',
+        'archived' => '📦 已归档',
+    ],
+
+    // 状态（无图标）
+    'statuses_no_icon' => [
         'pending_assignment' => '待指派',
         'assigned' => '已指派',
         'in_progress' => '维修中',

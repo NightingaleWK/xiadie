@@ -6,7 +6,7 @@ class Archived extends WorkOrderState
 {
     public function color(): string
     {
-        return 'secondary';
+        return 'slate';
     }
 
     public function label(): string

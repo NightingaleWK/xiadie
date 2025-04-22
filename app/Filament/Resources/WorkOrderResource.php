@@ -40,13 +40,23 @@ class WorkOrderResource extends Resource
                         TextInput::make('title')
                             ->required()
                             ->maxLength(255)
-                            ->label(__('work-orders.title')),
+                            ->label(__('work-orders.title'))
+                            ->columnSpanFull(),
 
                         Textarea::make('description')
                             ->required()
                             ->columnSpanFull()
-                            ->label(__('work-orders.description')),
-                    ])->columns(1),
+                            ->label(__('work-orders.description'))
+                            ->columnSpanFull(),
+
+                        DateTimePicker::make('created_at')
+                            ->label('工单创建时间')
+                            ->disabled(),
+
+                        DateTimePicker::make('updated_at')
+                            ->label('工单最后更新时间')
+                            ->disabled(),
+                    ])->columns(2),
 
                 Section::make(__('work-orders.sections.status_info'))
                     ->schema([
@@ -61,13 +71,20 @@ class WorkOrderResource extends Resource
                                 'archived' => __('work-orders.statuses.archived'),
                             ])
                             ->native(false)
-                            ->required()
+                            ->disabled()
+                            ->dehydrated()
+                            ->default('pending_assignment')
                             ->label(__('work-orders.status')),
 
                         Select::make('creator_user_id')
                             ->relationship('creator', 'name')
                             ->native(false)
                             ->required()
+                            ->disabled()
+                            ->dehydrated()
+                            ->default(function () {
+                                return auth()->id();
+                            })
                             ->label(__('work-orders.creator_user_id')),
 
                         Select::make('assigned_user_id')
@@ -92,13 +109,13 @@ class WorkOrderResource extends Resource
                             ->label(__('work-orders.rejection_reason')),
 
                         DateTimePicker::make('completed_at')
-                            ->native(false)
+                            ->columnSpan(1)
                             ->label(__('work-orders.completed_at')),
 
                         DateTimePicker::make('archived_at')
-                            ->native(false)
+                            ->columnSpan(1)
                             ->label(__('work-orders.archived_at')),
-                    ])->columns(1),
+                    ])->columns(2),
             ]);
     }
 
@@ -115,15 +132,16 @@ class WorkOrderResource extends Resource
 
                 TextColumn::make('status')
                     ->badge()
-                    ->colors([
-                        'info' => 'pending_assignment',
-                        'primary' => 'assigned',
-                        'warning' => 'in_progress',
-                        'dark' => 'pending_review',
-                        'danger' => 'rejected',
-                        'success' => 'completed',
-                        'secondary' => 'archived',
-                    ])
+                    ->color(fn(string $state): string => match ($state) {
+                        'pending_assignment' => 'sky',
+                        'assigned' => 'purple',
+                        'in_progress' => 'orange',
+                        'pending_review' => 'indigo',
+                        'rejected' => 'danger',
+                        'completed' => 'success',
+                        'archived' => 'slate',
+                        default => 'gray',
+                    })
                     ->formatStateUsing(fn(string $state): string => __("work-orders.statuses.{$state}"))
                     ->label(__('work-orders.status')),
 
@@ -166,6 +184,28 @@ class WorkOrderResource extends Resource
                         'completed' => __('work-orders.statuses.completed'),
                         'archived' => __('work-orders.statuses.archived'),
                     ])
+                    ->indicator('状态')
+                    ->indicateUsing(function (array $state): array {
+                        if (! $state['value']) {
+                            return [];
+                        }
+
+                        $color = match ($state['value']) {
+                            'pending_assignment' => 'sky',
+                            'assigned' => 'purple',
+                            'in_progress' => 'orange',
+                            'pending_review' => 'indigo',
+                            'rejected' => 'danger',
+                            'completed' => 'success',
+                            'archived' => 'slate',
+                            default => 'gray',
+                        };
+
+                        return [
+                            'label' => __("work-orders.statuses.{$state['value']}"),
+                            'color' => $color,
+                        ];
+                    })
                     ->label(__('work-orders.status')),
             ])
             ->actions([
@@ -174,7 +214,7 @@ class WorkOrderResource extends Resource
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_assignment')
                     ->action(function (WorkOrder $record, array $data) {
                         $user = \App\Models\User::find($data['assigned_user_id']);
-                        $record->assignTo($user);
+                        $record->assignTo($user, $data['notes']);
                     })
                     ->form([
                         Select::make('assigned_user_id')
@@ -183,6 +223,11 @@ class WorkOrderResource extends Resource
                             ->native(false)
                             ->label(__('work-orders.assigned_user_id'))
                             ->getOptionLabelFromRecordUsing(fn($record) => $record->name . ' - ' . ($record->roles->first()?->nick_name ?? $record->roles->first()?->name ?? '无角色')),
+
+                        Textarea::make('notes')
+                            ->label('注意事项')
+                            ->default('请及时维修')
+                            ->required(),
                     ]),
 
                 Action::make('start_repair')

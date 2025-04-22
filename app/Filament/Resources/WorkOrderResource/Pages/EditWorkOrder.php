@@ -17,4 +17,13 @@ class EditWorkOrder extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // 保留原始状态，防止被修改
+        $originalStatus = $this->record->status->getValue();
+        $data['status'] = $originalStatus;
+
+        return $data;
+    }
 }

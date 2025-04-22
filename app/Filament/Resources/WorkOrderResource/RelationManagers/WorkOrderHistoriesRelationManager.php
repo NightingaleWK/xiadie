@@ -49,6 +49,8 @@ class WorkOrderHistoriesRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('action')
             ->columns([
+                TextColumn::make('id'),
+
                 TextColumn::make('user.name')
                     ->label(__('work-order-histories.user_id'))
                     ->sortable(),
@@ -60,29 +62,31 @@ class WorkOrderHistoriesRelationManager extends RelationManager
 
                 TextColumn::make('from_status')
                     ->badge()
-                    ->colors([
-                        'info' => 'pending_assignment',
-                        'primary' => 'assigned',
-                        'warning' => 'in_progress',
-                        'dark' => 'pending_review',
-                        'danger' => 'rejected',
-                        'success' => 'completed',
-                        'secondary' => 'archived',
-                    ])
+                    ->color(fn(string $state): string => match ($state) {
+                        'pending_assignment' => 'sky',
+                        'assigned' => 'purple',
+                        'in_progress' => 'orange',
+                        'pending_review' => 'indigo',
+                        'rejected' => 'danger',
+                        'completed' => 'success',
+                        'archived' => 'slate',
+                        default => 'gray',
+                    })
                     ->formatStateUsing(fn(string $state): string => $state ? __("work-orders.statuses.{$state}") : '')
                     ->label(__('work-order-histories.from_status')),
 
                 TextColumn::make('to_status')
                     ->badge()
-                    ->colors([
-                        'info' => 'pending_assignment',
-                        'primary' => 'assigned',
-                        'warning' => 'in_progress',
-                        'dark' => 'pending_review',
-                        'danger' => 'rejected',
-                        'success' => 'completed',
-                        'secondary' => 'archived',
-                    ])
+                    ->color(fn(string $state): string => match ($state) {
+                        'pending_assignment' => 'sky',
+                        'assigned' => 'purple',
+                        'in_progress' => 'orange',
+                        'pending_review' => 'indigo',
+                        'rejected' => 'danger',
+                        'completed' => 'success',
+                        'archived' => 'slate',
+                        default => 'gray',
+                    })
                     ->formatStateUsing(fn(string $state): string => $state ? __("work-orders.statuses.{$state}") : '')
                     ->label(__('work-order-histories.to_status')),
 

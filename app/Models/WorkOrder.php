@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\ModelStates\HasStates;
+use Illuminate\Support\Facades\Auth;
 
 class WorkOrder extends Model
 {
@@ -95,7 +96,7 @@ class WorkOrder extends Model
     /**
      * 指派工单给用户
      */
-    public function assignTo(User $user): void
+    public function assignTo(User $user, string $notes = '请及时维修'): void
     {
         $this->assigned_user_id = $user->id;
         $this->status->transitionTo(Assigned::class);
@@ -106,7 +107,7 @@ class WorkOrder extends Model
             'assign',
             'pending_assignment',
             'assigned',
-            __('work-orders.messages.assigned', ['user' => $user->name])
+            __('work-orders.messages.assigned', ['user' => $user->name]) . '。备注：' . $notes
         ));
     }
 
@@ -141,7 +142,7 @@ class WorkOrder extends Model
             'submit_review',
             'in_progress',
             'pending_review',
-            __('work-orders.messages.submitted_review')
+            __('work-orders.messages.submitted_review') . '：' . $details
         ));
     }
 
@@ -172,12 +173,14 @@ class WorkOrder extends Model
         $this->status->transitionTo(Rejected::class);
         $this->save();
 
+        $user = Auth::user();
+
         event(new WorkOrderStatusChanged(
             $this,
             'reject',
             'pending_review',
             'rejected',
-            __('work-orders.messages.rejected')
+            __('work-orders.messages.rejected') . '。备注：' . $reason
         ));
     }
 

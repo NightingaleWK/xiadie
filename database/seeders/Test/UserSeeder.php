@@ -31,9 +31,9 @@ class UserSeeder extends Seeder
 
         // 创建工单发起人
         $creators = [
-            ['name' => '张三', 'email' => 'creator1@admin.com'],
-            ['name' => '李四', 'email' => 'creator2@admin.com'],
-            ['name' => '王五', 'email' => 'creator3@admin.com'],
+            ['name' => '张三-发起人', 'email' => 'creator1@admin.com'],
+            ['name' => '李四-发起人', 'email' => 'creator2@admin.com'],
+            ['name' => '王五-发起人', 'email' => 'creator3@admin.com'],
         ];
 
         foreach ($creators as $creator) {
@@ -48,11 +48,11 @@ class UserSeeder extends Seeder
 
         // 创建维修人员
         $repairers = [
-            ['name' => '赵六', 'email' => 'repairer1@admin.com'],
-            ['name' => '钱七', 'email' => 'repairer2@admin.com'],
-            ['name' => '孙八', 'email' => 'repairer3@admin.com'],
-            ['name' => '周九', 'email' => 'repairer4@admin.com'],
-            ['name' => '吴十', 'email' => 'repairer5@admin.com'],
+            ['name' => '赵六-维修人员', 'email' => 'repairer1@admin.com'],
+            ['name' => '钱七-维修人员', 'email' => 'repairer2@admin.com'],
+            ['name' => '孙八-维修人员', 'email' => 'repairer3@admin.com'],
+            ['name' => '周九-维修人员', 'email' => 'repairer4@admin.com'],
+            ['name' => '吴十-维修人员', 'email' => 'repairer5@admin.com'],
         ];
 
         foreach ($repairers as $repairer) {
@@ -67,8 +67,8 @@ class UserSeeder extends Seeder
 
         // 创建审核人员
         $reviewers = [
-            ['name' => '郑十一', 'email' => 'reviewer1@admin.com'],
-            ['name' => '王十二', 'email' => 'reviewer2@admin.com'],
+            ['name' => '郑十一-审核人员', 'email' => 'reviewer1@admin.com'],
+            ['name' => '王十二-审核人员', 'email' => 'reviewer2@admin.com'],
         ];
 
         foreach ($reviewers as $reviewer) {
@@ -83,7 +83,7 @@ class UserSeeder extends Seeder
 
         // 创建归档人员
         $archiver = User::create([
-            'name' => '归档人员',
+            'name' => '张三十三-归档人员',
             'email' => 'archiver@admin.com',
             'password' => Hash::make('password'),
             'organization_id' => $zhaoyuan->id, // 归档人员直接属于招远中电

@@ -6,7 +6,7 @@ class Assigned extends WorkOrderState
 {
     public function color(): string
     {
-        return 'primary';
+        return 'purple';
     }
 
     public function label(): string
