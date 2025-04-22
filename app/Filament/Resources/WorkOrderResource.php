@@ -46,6 +46,7 @@ class WorkOrderResource extends Resource
                         Textarea::make('description')
                             ->required()
                             ->columnSpanFull()
+                            ->autosize()
                             ->label(__('work-orders.description'))
                             ->columnSpanFull(),
 
@@ -102,10 +103,12 @@ class WorkOrderResource extends Resource
                     ->schema([
                         Textarea::make('repair_details')
                             ->columnSpanFull()
+                            ->autosize()
                             ->label(__('work-orders.repair_details')),
 
                         Textarea::make('rejection_reason')
                             ->columnSpanFull()
+                            ->autosize()
                             ->label(__('work-orders.rejection_reason')),
 
                         DateTimePicker::make('completed_at')
@@ -184,28 +187,6 @@ class WorkOrderResource extends Resource
                         'completed' => __('work-orders.statuses.completed'),
                         'archived' => __('work-orders.statuses.archived'),
                     ])
-                    ->indicator('状态')
-                    ->indicateUsing(function (array $state): array {
-                        if (! $state['value']) {
-                            return [];
-                        }
-
-                        $color = match ($state['value']) {
-                            'pending_assignment' => 'sky',
-                            'assigned' => 'purple',
-                            'in_progress' => 'orange',
-                            'pending_review' => 'indigo',
-                            'rejected' => 'danger',
-                            'completed' => 'success',
-                            'archived' => 'slate',
-                            default => 'gray',
-                        };
-
-                        return [
-                            'label' => __("work-orders.statuses.{$state['value']}"),
-                            'color' => $color,
-                        ];
-                    })
                     ->label(__('work-orders.status')),
             ])
             ->actions([

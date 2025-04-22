@@ -25,22 +25,47 @@ class WorkOrderHistoriesRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                TextInput::make('action')
-                    ->required()
-                    ->maxLength(255)
-                    ->label(__('work-order-histories.action')),
+                Forms\Components\Section::make()
+                    ->schema([
+                        TextInput::make('action')
+                            ->label(__('work-order-histories.action'))
+                            ->disabled()
+                            ->formatStateUsing(function ($state) {
+                                return __("work-order-histories.actions.{$state}");
+                            }),
 
-                TextInput::make('from_status')
-                    ->maxLength(255)
-                    ->label(__('work-order-histories.from_status')),
+                        TextInput::make('user_name')
+                            ->label(__('work-order-histories.user_id'))
+                            ->disabled()
+                            ->formatStateUsing(function ($state, $record) {
+                                return $record->user ? $record->user->name : '';
+                            }),
 
-                TextInput::make('to_status')
-                    ->maxLength(255)
-                    ->label(__('work-order-histories.to_status')),
+                        TextInput::make('from_status')
+                            ->label(__('work-order-histories.from_status'))
+                            ->disabled()
+                            ->formatStateUsing(function ($state) {
+                                return $state ? __("work-orders.statuses.{$state}") : '';
+                            }),
 
-                Textarea::make('comment')
-                    ->columnSpanFull()
-                    ->label(__('work-order-histories.comment')),
+                        TextInput::make('to_status')
+                            ->label(__('work-order-histories.to_status'))
+                            ->disabled()
+                            ->formatStateUsing(function ($state) {
+                                return $state ? __("work-orders.statuses.{$state}") : '';
+                            }),
+
+                        Textarea::make('comment')
+                            ->label(__('work-order-histories.comment'))
+                            ->disabled()
+                            ->autosize()
+                            ->columnSpanFull(),
+
+                        TextInput::make('created_at')
+                            ->label(__('work-order-histories.created_at'))
+                            ->disabled()
+                            ->formatStateUsing(fn($state) => $state ? date('Y-m-d H:i:s', strtotime($state)) : ''),
+                    ])->columns(2),
             ]);
     }
 
