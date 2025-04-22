@@ -28,6 +28,9 @@ use Filament\Support\Enums\MaxWidth;
 use Filament\Tables\Enums\FiltersLayout;
 use App\Events\WorkOrderStatusChanged;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
+use Filament\Forms\Components\Placeholder;
 
 class WorkOrderResource extends Resource
 {
@@ -43,37 +46,68 @@ class WorkOrderResource extends Resource
 
         return $form
             ->schema([
-                Section::make(__('work-orders.sections.basic_info'))
+                Section::make()
                     ->schema([
-                        TextInput::make('title')
-                            ->required()
-                            ->maxLength(255)
-                            ->label(__('work-orders.title'))
-                            ->columnSpanFull(),
+                        Grid::make()
+                            ->schema([
+                                Section::make(__('work-orders.sections.basic_info'))
+                                    ->schema([
+                                        TextInput::make('title')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->label(__('work-orders.title'))
+                                            ->columnSpanFull(),
 
-                        Textarea::make('description')
-                            ->required()
-                            ->columnSpanFull()
-                            ->autosize()
-                            ->label(__('work-orders.description'))
-                            ->columnSpanFull(),
+                                        Textarea::make('description')
+                                            ->required()
+                                            ->columnSpanFull()
+                                            ->autosize()
+                                            ->label(__('work-orders.description'))
+                                            ->columnSpanFull(),
 
-                        Select::make('project_id')
-                            ->relationship('project', 'name')
-                            ->preload()
-                            ->searchable()
-                            ->native(false)
-                            ->optionsLimit(20)
-                            ->label(__('work-orders.project_id')),
+                                        Select::make('project_id')
+                                            ->relationship('project', 'name')
+                                            ->preload()
+                                            ->searchable()
+                                            ->native(false)
+                                            ->optionsLimit(20)
+                                            ->label(__('work-orders.project_id')),
 
-                        DateTimePicker::make('created_at')
-                            ->label('工单创建时间')
-                            ->disabled(),
+                                        DateTimePicker::make('created_at')
+                                            ->label('工单创建时间')
+                                            ->disabled(),
 
-                        DateTimePicker::make('updated_at')
-                            ->label('工单最后更新时间')
-                            ->disabled(),
-                    ])->columns(3),
+                                        DateTimePicker::make('updated_at')
+                                            ->label('工单最后更新时间')
+                                            ->disabled(),
+                                    ])
+                                    ->columns(1)
+                                    ->columnSpan(3),
+
+                                Section::make(__('work-orders.problem_attachments'))
+                                    ->schema([
+                                        SpatieMediaLibraryFileUpload::make('problem_attachments')
+                                            ->collection('problem_attachments')
+                                            ->multiple()
+                                            ->maxFiles(5)
+                                            ->disk('public')
+                                            ->visibility('public')
+                                            ->downloadable()
+                                            ->openable()
+                                            ->label(__('work-orders.problem_attachments'))
+                                            ->helperText('可上传工单相关的图片或文档（最多5个文件）')
+                                            ->acceptedFileTypes(['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                                            ->imagePreviewHeight('150')
+                                            ->loadingIndicatorPosition('left')
+                                            ->panelLayout('grid')
+                                            ->panelAspectRatio('4:3')
+                                            ->uploadProgressIndicatorPosition('center')
+                                            ->imageResizeMode('contain'),
+                                    ])
+                                    ->columnSpan(2),
+                            ])
+                            ->columns(5),
+                    ]),
 
                 Section::make(__('work-orders.sections.status_info'))
                     ->schema([
@@ -117,39 +151,69 @@ class WorkOrderResource extends Resource
                             ->label(__('work-orders.reviewer_user_id')),
                     ])->columns(4),
 
-                Section::make(__('work-orders.sections.repair_info'))
+                Section::make()
                     ->schema([
-                        CheckboxList::make('fault_types')
-                            ->options([
-                                'power'    => __('work-orders.fault_types_options.power'),
-                                'network'  => __('work-orders.fault_types_options.network'),
-                                'device'   => __('work-orders.fault_types_options.device'),
-                                'config'   => __('work-orders.fault_types_options.config'),
-                                'software' => __('work-orders.fault_types_options.software'),
-                                'wiring'   => __('work-orders.fault_types_options.wiring'),
+                        Grid::make()
+                            ->schema([
+                                Section::make('故障记录')
+                                    ->schema([
+                                        CheckboxList::make('fault_types')
+                                            ->options([
+                                                'power'    => __('work-orders.fault_types_options.power'),
+                                                'network'  => __('work-orders.fault_types_options.network'),
+                                                'device'   => __('work-orders.fault_types_options.device'),
+                                                'config'   => __('work-orders.fault_types_options.config'),
+                                                'software' => __('work-orders.fault_types_options.software'),
+                                                'wiring'   => __('work-orders.fault_types_options.wiring'),
+                                            ])
+                                            ->label(__('work-orders.fault_types'))
+                                            // ->placeholder('暂无')
+                                            ->disabled()
+                                            ->columns(3)
+                                            ->gridDirection('row'),
+
+                                        Textarea::make('repair_details')
+                                            ->disabled()
+                                            ->autosize()
+                                            ->label(__('work-orders.repair_details')),
+
+
+                                        DateTimePicker::make('completed_at')
+                                            ->disabled()
+                                            ->label(__('work-orders.completed_at')),
+
+                                        DateTimePicker::make('archived_at')
+                                            ->disabled()
+                                            ->label(__('work-orders.archived_at')),
+                                    ])
+                                    ->columnSpan(3),
+
+                                Section::make(__('work-orders.repair_attachments'))
+                                    ->schema([
+                                        SpatieMediaLibraryFileUpload::make('repair_attachments')
+                                            ->collection('repair_attachments')
+                                            ->multiple()
+                                            ->maxFiles(5)
+                                            ->disk('public')
+                                            ->visibility('public')
+                                            ->downloadable()
+                                            ->openable()
+                                            ->label(__('work-orders.repair_attachments'))
+                                            ->helperText('可上传工单相关的图片或文档（最多5个文件）')
+                                            ->acceptedFileTypes(['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                                            ->imagePreviewHeight('150')
+                                            ->loadingIndicatorPosition('left')
+                                            ->panelLayout('grid')
+                                            ->panelAspectRatio('4:3')
+                                            ->uploadProgressIndicatorPosition('center')
+                                            ->imageResizeMode('contain'),
+                                    ])
+                                    ->visible(function ($record) {
+                                        return $record && $record->getMedia('repair_attachments')->count() > 0;
+                                    })->columnSpan(2),
                             ])
-                            ->columnSpanFull()
-                            ->label(__('work-orders.fault_types'))
-                            ->disabled()
-                            ->columns(6)
-                            ->gridDirection('row'),
-
-                        Textarea::make('repair_details')
-                            ->columnSpanFull()
-                            ->disabled()
-                            ->autosize()
-                            ->label(__('work-orders.repair_details')),
-
-                        DateTimePicker::make('completed_at')
-                            ->disabled()
-                            ->columnSpan(1)
-                            ->label(__('work-orders.completed_at')),
-
-                        DateTimePicker::make('archived_at')
-                            ->disabled()
-                            ->columnSpan(1)
-                            ->label(__('work-orders.archived_at')),
-                    ])->columns(2),
+                            ->columns(5),
+                    ])->columns(1),
             ]);
     }
 
@@ -189,6 +253,7 @@ class WorkOrderResource extends Resource
                 TextColumn::make('fault_types')
                     ->label(__('work-orders.fault_types'))
                     ->badge()
+                    ->placeholder('暂无')
                     ->getStateUsing(function ($record) {
                         if (empty($record->fault_types)) return null;
 
@@ -225,6 +290,39 @@ class WorkOrderResource extends Resource
                     ->placeholder('暂无')
                     ->label(__('work-orders.reviewer_user_id'))
                     ->sortable(),
+
+                TextColumn::make('attachments_count')
+                    ->label('附件数量')
+                    ->getStateUsing(function ($record) {
+                        $problemCount = $record->getMedia('problem_attachments')->count();
+                        $repairCount = $record->getMedia('repair_attachments')->count();
+
+                        if ($problemCount + $repairCount == 0) {
+                            return null;
+                        }
+
+                        return $problemCount + $repairCount;
+                    })
+                    ->description(function ($record) {
+                        $problemCount = $record->getMedia('problem_attachments')->count();
+                        $repairCount = $record->getMedia('repair_attachments')->count();
+
+                        if ($problemCount + $repairCount == 0) {
+                            return null;
+                        }
+
+                        $parts = [];
+                        if ($problemCount > 0) {
+                            $parts[] = "问题：{$problemCount}";
+                        }
+                        if ($repairCount > 0) {
+                            $parts[] = "维修：{$repairCount}";
+                        }
+
+                        return implode(' | ', $parts);
+                    })
+                    ->icon('heroicon-o-paper-clip')
+                    ->iconPosition('before'),
 
                 TextColumn::make('created_at')
                     ->label(__('users.created_at'))
@@ -501,8 +599,24 @@ class WorkOrderResource extends Resource
                                 'wiring'   => __('work-orders.fault_types_options.wiring'),
                             ])
                             ->required()
-                            ->label('故障类型')
+                            ->label(__('work-orders.fault_types'))
                             ->helperText('请选择适用的故障类型，可多选'),
+
+                        SpatieMediaLibraryFileUpload::make('repair_attachments')
+                            ->collection('repair_attachments')
+                            ->multiple()
+                            ->maxFiles(5)
+                            ->disk('public')
+                            ->visibility('public')
+                            ->label(__('work-orders.repair_attachments'))
+                            ->helperText('可上传维修证明照片或文档（最多5个文件）')
+                            ->acceptedFileTypes(['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                            ->imagePreviewHeight('150')
+                            ->loadingIndicatorPosition('left')
+                            ->panelLayout('grid')
+                            ->panelAspectRatio('4:3')
+                            ->uploadProgressIndicatorPosition('center')
+                            ->imageResizeMode('contain'),
                     ])
                     ->action(function (WorkOrder $record, array $data) {
                         $record->fault_types = $data['fault_types'];

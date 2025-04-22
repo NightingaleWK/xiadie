@@ -17,12 +17,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\ModelStates\HasStates;
 use Illuminate\Support\Facades\Auth;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Spatie\Image\Enums\Fit;
 
-class WorkOrder extends Model
+class WorkOrder extends Model implements HasMedia
 {
     /** @use HasFactory<\Database\Factories\WorkOrderFactory> */
     use HasFactory;
     use HasStates;
+    use InteractsWithMedia;
 
     /**
      * 可批量赋值的属性
@@ -272,5 +277,31 @@ class WorkOrder extends Model
             'archived',
             $message
         ));
+    }
+
+    /**
+     * 注册媒体集合
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('problem_attachments')
+            ->useDisk('public');
+
+        $this->addMediaCollection('repair_attachments')
+            ->useDisk('public');
+    }
+
+    /**
+     * 注册媒体转换器
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->fit(Fit::Contain, 150, 150)
+            ->nonQueued();
+
+        $this->addMediaConversion('preview')
+            ->fit(Fit::Contain, 800, 800)
+            ->nonQueued();
     }
 }
