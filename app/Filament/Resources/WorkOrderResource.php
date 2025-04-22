@@ -115,7 +115,7 @@ class WorkOrderResource extends Resource
                             ->relationship('reviewer', 'name')
                             ->disabled()
                             ->label(__('work-orders.reviewer_user_id')),
-                    ])->columns(2),
+                    ])->columns(4),
 
                 Section::make(__('work-orders.sections.repair_info'))
                     ->schema([
