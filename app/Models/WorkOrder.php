@@ -37,7 +37,6 @@ class WorkOrder extends Model
         'assigned_user_id',
         'reviewer_user_id',
         'repair_details',
-        'rejection_reason',
         'completed_at',
         'archived_at',
         'project_id',
@@ -198,7 +197,6 @@ class WorkOrder extends Model
      */
     public function reject(string $reason): void
     {
-        $this->rejection_reason = $reason;
         $this->status->transitionTo(Rejected::class);
         $this->save();
 

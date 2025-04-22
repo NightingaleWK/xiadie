@@ -14,7 +14,6 @@ return [
     'assigned_user_id' => '维修人',
     'reviewer_user_id' => '审核人',
     'repair_details'   => '维修记录',
-    'rejection_reason' => '驳回原因',
     'completed_at'     => '审核通过时间',
     'archived_at'      => '归档时间',
     'created_at'       => '创建时间',

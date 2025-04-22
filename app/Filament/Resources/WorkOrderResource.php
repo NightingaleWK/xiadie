@@ -131,19 +131,14 @@ class WorkOrderResource extends Resource
                             ->columnSpanFull()
                             ->label(__('work-orders.fault_types'))
                             ->disabled()
-                            ->helperText('请选择适用的故障类型，可多选'),
+                            ->columns(6)
+                            ->gridDirection('row'),
 
                         Textarea::make('repair_details')
                             ->columnSpanFull()
                             ->disabled()
                             ->autosize()
                             ->label(__('work-orders.repair_details')),
-
-                        Textarea::make('rejection_reason')
-                            ->columnSpanFull()
-                            ->disabled()
-                            ->autosize()
-                            ->label(__('work-orders.rejection_reason')),
 
                         DateTimePicker::make('completed_at')
                             ->disabled()

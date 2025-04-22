@@ -32,8 +32,6 @@ class UserSeeder extends Seeder
         // 创建工单发起人
         $creators = [
             ['name' => '张三-发起人', 'email' => 'creator1@admin.com'],
-            ['name' => '李四-发起人', 'email' => 'creator2@admin.com'],
-            ['name' => '王五-发起人', 'email' => 'creator3@admin.com'],
         ];
 
         foreach ($creators as $creator) {
@@ -51,8 +49,6 @@ class UserSeeder extends Seeder
             ['name' => '赵六-维修人员', 'email' => 'repairer1@admin.com'],
             ['name' => '钱七-维修人员', 'email' => 'repairer2@admin.com'],
             ['name' => '孙八-维修人员', 'email' => 'repairer3@admin.com'],
-            ['name' => '周九-维修人员', 'email' => 'repairer4@admin.com'],
-            ['name' => '吴十-维修人员', 'email' => 'repairer5@admin.com'],
         ];
 
         foreach ($repairers as $repairer) {
@@ -68,7 +64,6 @@ class UserSeeder extends Seeder
         // 创建审核人员
         $reviewers = [
             ['name' => '郑十一-审核人员', 'email' => 'reviewer1@admin.com'],
-            ['name' => '王十二-审核人员', 'email' => 'reviewer2@admin.com'],
         ];
 
         foreach ($reviewers as $reviewer) {
