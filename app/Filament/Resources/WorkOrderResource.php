@@ -19,6 +19,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Section;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,11 +37,12 @@ class WorkOrderResource extends Resource
             ->schema([
                 Section::make(__('work-orders.sections.basic_info'))
                     ->schema([
-                        Forms\Components\TextInput::make('title')
+                        TextInput::make('title')
                             ->required()
                             ->maxLength(255)
                             ->label(__('work-orders.title')),
-                        Forms\Components\Textarea::make('description')
+
+                        Textarea::make('description')
                             ->required()
                             ->columnSpanFull()
                             ->label(__('work-orders.description')),
@@ -58,16 +60,23 @@ class WorkOrderResource extends Resource
                                 'completed' => __('work-orders.statuses.completed'),
                                 'archived' => __('work-orders.statuses.archived'),
                             ])
+                            ->native(false)
                             ->required()
                             ->label(__('work-orders.status')),
+
                         Select::make('creator_user_id')
                             ->relationship('creator', 'name')
+                            ->native(false)
                             ->required()
                             ->label(__('work-orders.creator_user_id')),
+
                         Select::make('assigned_user_id')
+                            ->native(false)
                             ->relationship('assignedUser', 'name')
                             ->label(__('work-orders.assigned_user_id')),
+
                         Select::make('reviewer_user_id')
+                            ->native(false)
                             ->relationship('reviewer', 'name')
                             ->label(__('work-orders.reviewer_user_id')),
                     ])->columns(2),
@@ -77,12 +86,17 @@ class WorkOrderResource extends Resource
                         Textarea::make('repair_details')
                             ->columnSpanFull()
                             ->label(__('work-orders.repair_details')),
+
                         Textarea::make('rejection_reason')
                             ->columnSpanFull()
                             ->label(__('work-orders.rejection_reason')),
+
                         DateTimePicker::make('completed_at')
+                            ->native(false)
                             ->label(__('work-orders.completed_at')),
+
                         DateTimePicker::make('archived_at')
+                            ->native(false)
                             ->label(__('work-orders.archived_at')),
                     ])->columns(1),
             ]);
@@ -142,6 +156,7 @@ class WorkOrderResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
+                    ->native(false)
                     ->options([
                         'pending_assignment' => __('work-orders.statuses.pending_assignment'),
                         'assigned' => __('work-orders.statuses.assigned'),
