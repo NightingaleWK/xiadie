@@ -790,22 +790,32 @@ class WorkOrderResource extends Resource
                         $record->archive($data['comment'] ?? null);
                     }),
 
+                Tables\Actions\EditAction::make()
+                    ->visible(function (WorkOrder $record) {
+                        // 只有超级管理员和工单创建者可以编辑，且创建者只能在待指派状态下编辑
+                        if (Auth::user()->hasRole('super_admin')) {
+                            return true;
+                        }
+
+                        // 维修人员可以编辑自己正在处理的工单
+                        if (
+                            Auth::user()->hasRole('repairer') &&
+                            $record->assigned_user_id === Auth::id() &&
+                            $record->status->getValue() === 'in_progress'
+                        ) {
+                            return true;
+                        }
+
+                        return Auth::user()->hasRole('creator') &&
+                            Auth::id() === $record->creator_user_id &&
+                            $record->status->getValue() === 'pending_assignment';
+                    }),
+
                 ActionGroup::make([
                     Tables\Actions\ViewAction::make()
                         ->visible(function (WorkOrder $record) {
                             // 所有角色都可以查看
                             return true;
-                        }),
-                    Tables\Actions\EditAction::make()
-                        ->visible(function (WorkOrder $record) {
-                            // 只有超级管理员和工单创建者可以编辑，且创建者只能在待指派状态下编辑
-                            if (Auth::user()->hasRole('super_admin')) {
-                                return true;
-                            }
-
-                            return Auth::user()->hasRole('creator') &&
-                                Auth::id() === $record->creator_user_id &&
-                                $record->status->getValue() === 'pending_assignment';
                         }),
                 ]),
             ])
