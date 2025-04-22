@@ -66,6 +66,7 @@ class WorkOrderResource extends Resource
                                             ->columnSpanFull(),
 
                                         Select::make('project_id')
+                                            ->required()
                                             ->relationship('project', 'name')
                                             ->preload()
                                             ->searchable()
@@ -89,13 +90,13 @@ class WorkOrderResource extends Resource
                                         SpatieMediaLibraryFileUpload::make('problem_attachments')
                                             ->collection('problem_attachments')
                                             ->multiple()
-                                            ->maxFiles(5)
+                                            ->maxFiles(6)
                                             ->disk('public')
                                             ->visibility('public')
                                             ->downloadable()
                                             ->openable()
                                             ->label(__('work-orders.problem_attachments'))
-                                            ->helperText('可上传工单相关的图片或文档（最多5个文件）')
+                                            ->helperText('可上传工单相关的图片或文档（最多6个文件）')
                                             ->acceptedFileTypes(['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
                                             ->imagePreviewHeight('150')
                                             ->loadingIndicatorPosition('left')
@@ -193,13 +194,13 @@ class WorkOrderResource extends Resource
                                         SpatieMediaLibraryFileUpload::make('repair_attachments')
                                             ->collection('repair_attachments')
                                             ->multiple()
-                                            ->maxFiles(5)
+                                            ->maxFiles(6)
                                             ->disk('public')
                                             ->visibility('public')
                                             ->downloadable()
                                             ->openable()
                                             ->label(__('work-orders.repair_attachments'))
-                                            ->helperText('可上传工单相关的图片或文档（最多5个文件）')
+                                            ->helperText('可上传工单相关的图片或文档（最多6个文件）')
                                             ->acceptedFileTypes(['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
                                             ->imagePreviewHeight('150')
                                             ->loadingIndicatorPosition('left')
@@ -207,10 +208,7 @@ class WorkOrderResource extends Resource
                                             ->panelAspectRatio('4:3')
                                             ->uploadProgressIndicatorPosition('center')
                                             ->imageResizeMode('contain'),
-                                    ])
-                                    ->visible(function ($record) {
-                                        return $record && $record->getMedia('repair_attachments')->count() > 0;
-                                    })->columnSpan(2),
+                                    ])->columnSpan(2),
                             ])
                             ->columns(5),
                     ])->columns(1),
@@ -605,11 +603,11 @@ class WorkOrderResource extends Resource
                         SpatieMediaLibraryFileUpload::make('repair_attachments')
                             ->collection('repair_attachments')
                             ->multiple()
-                            ->maxFiles(5)
+                            ->maxFiles(6)
                             ->disk('public')
                             ->visibility('public')
                             ->label(__('work-orders.repair_attachments'))
-                            ->helperText('可上传维修证明照片或文档（最多5个文件）')
+                            ->helperText('可上传维修证明照片或文档（最多6个文件）')
                             ->acceptedFileTypes(['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
                             ->imagePreviewHeight('150')
                             ->loadingIndicatorPosition('left')
