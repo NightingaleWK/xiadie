@@ -189,9 +189,12 @@ class WorkOrderResource extends Resource
                 TextColumn::make('fault_types')
                     ->label(__('work-orders.fault_types'))
                     ->badge()
-                    ->separator(',')
-                    ->formatStateUsing(function ($state) {
-                        if (!$state) return null;
+                    ->getStateUsing(function ($record) {
+                        if (empty($record->fault_types)) return null;
+
+                        $types = is_array($record->fault_types) ? $record->fault_types : json_decode($record->fault_types, true);
+
+                        if (empty($types)) return null;
 
                         $labels = [
                             'power'    => __('work-orders.fault_types_options.power'),
@@ -202,9 +205,11 @@ class WorkOrderResource extends Resource
                             'wiring'   => __('work-orders.fault_types_options.wiring'),
                         ];
 
-                        $types = is_array($state) ? $state : json_decode($state, true);
-                        return collect($types)->map(fn($type) => $labels[$type] ?? $type)->toArray();
-                    }),
+                        return collect($types)->map(function ($type) use ($labels) {
+                            return $labels[$type] ?? $type;
+                        });
+                    })
+                    ->listWithLineBreaks(),
 
                 TextColumn::make('creator.name')
                     ->placeholder('暂无')
