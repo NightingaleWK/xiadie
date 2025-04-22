@@ -22,6 +22,7 @@ return new class extends Migration
             $table->foreignId('reviewer_user_id')->nullable()->comment('审核人ID')->constrained('users');
             $table->text('repair_details')->nullable()->comment('维修过程/结果记录');
             $table->text('rejection_reason')->nullable()->comment('驳回原因');
+            $table->json('fault_types')->nullable()->comment('故障类型');
             $table->timestamp('completed_at')->nullable()->comment('完成时间');
             $table->timestamp('archived_at')->nullable()->comment('归档时间');
             $table->timestamps();

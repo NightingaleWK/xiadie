@@ -41,6 +41,7 @@ class WorkOrder extends Model
         'completed_at',
         'archived_at',
         'project_id',
+        'fault_types',
     ];
 
     /**
@@ -55,11 +56,9 @@ class WorkOrder extends Model
         'updated_at',
     ];
 
-    /**
-     * 状态机配置
-     */
     protected $casts = [
         'status' => WorkOrderState::class,
+        'fault_types' => 'json',
     ];
 
     /**
@@ -146,12 +145,28 @@ class WorkOrder extends Model
         $this->status->transitionTo(PendingReview::class);
         $this->save();
 
+        $faultTypesLabels = [
+            'power'    => __('work-orders.fault_types_options.power'),
+            'network'  => __('work-orders.fault_types_options.network'),
+            'device'   => __('work-orders.fault_types_options.device'),
+            'config'   => __('work-orders.fault_types_options.config'),
+            'software' => __('work-orders.fault_types_options.software'),
+            'wiring'   => __('work-orders.fault_types_options.wiring'),
+        ];
+
+        $faultTypesText = '';
+        if (!empty($this->fault_types)) {
+            $types = is_array($this->fault_types) ? $this->fault_types : json_decode($this->fault_types, true);
+            $typeLabels = collect($types)->map(fn($type) => $faultTypesLabels[$type] ?? $type)->join('、');
+            $faultTypesText = "，故障类型：{$typeLabels}";
+        }
+
         event(new WorkOrderStatusChanged(
             $this,
             'submit_review',
             'in_progress',
             'pending_review',
-            __('work-orders.messages.submitted_review') . '：' . $details
+            __('work-orders.messages.submitted_review') . $faultTypesText . '。维修详情：' . $details
         ));
     }
 

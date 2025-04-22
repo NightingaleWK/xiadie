@@ -27,6 +27,7 @@ use App\States\Rejected;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Tables\Enums\FiltersLayout;
 use App\Events\WorkOrderStatusChanged;
+use Filament\Forms\Components\CheckboxList;
 
 class WorkOrderResource extends Resource
 {
@@ -79,12 +80,12 @@ class WorkOrderResource extends Resource
                         Select::make('status')
                             ->options([
                                 'pending_assignment' => __('work-orders.statuses.pending_assignment'),
-                                'assigned' => __('work-orders.statuses.assigned'),
-                                'in_progress' => __('work-orders.statuses.in_progress'),
-                                'pending_review' => __('work-orders.statuses.pending_review'),
-                                'rejected' => __('work-orders.statuses.rejected'),
-                                'completed' => __('work-orders.statuses.completed'),
-                                'archived' => __('work-orders.statuses.archived'),
+                                'assigned'           => __('work-orders.statuses.assigned'),
+                                'in_progress'        => __('work-orders.statuses.in_progress'),
+                                'pending_review'     => __('work-orders.statuses.pending_review'),
+                                'rejected'           => __('work-orders.statuses.rejected'),
+                                'completed'          => __('work-orders.statuses.completed'),
+                                'archived'           => __('work-orders.statuses.archived'),
                             ])
                             ->native(false)
                             ->disabled()
@@ -118,6 +119,20 @@ class WorkOrderResource extends Resource
 
                 Section::make(__('work-orders.sections.repair_info'))
                     ->schema([
+                        CheckboxList::make('fault_types')
+                            ->options([
+                                'power'    => __('work-orders.fault_types_options.power'),
+                                'network'  => __('work-orders.fault_types_options.network'),
+                                'device'   => __('work-orders.fault_types_options.device'),
+                                'config'   => __('work-orders.fault_types_options.config'),
+                                'software' => __('work-orders.fault_types_options.software'),
+                                'wiring'   => __('work-orders.fault_types_options.wiring'),
+                            ])
+                            ->columnSpanFull()
+                            ->label(__('work-orders.fault_types'))
+                            ->disabled()
+                            ->helperText('请选择适用的故障类型，可多选'),
+
                         Textarea::make('repair_details')
                             ->columnSpanFull()
                             ->disabled()
@@ -165,16 +180,36 @@ class WorkOrderResource extends Resource
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'pending_assignment' => 'sky',
-                        'assigned' => 'purple',
-                        'in_progress' => 'orange',
-                        'pending_review' => 'indigo',
-                        'rejected' => 'danger',
-                        'completed' => 'success',
-                        'archived' => 'slate',
-                        default => 'gray',
+                        'assigned'           => 'purple',
+                        'in_progress'        => 'orange',
+                        'pending_review'     => 'indigo',
+                        'rejected'           => 'danger',
+                        'completed'          => 'success',
+                        'archived'           => 'slate',
+                        default              => 'gray',
                     })
                     ->formatStateUsing(fn(string $state): string => __("work-orders.statuses.{$state}"))
                     ->label(__('work-orders.status')),
+
+                TextColumn::make('fault_types')
+                    ->label(__('work-orders.fault_types'))
+                    ->badge()
+                    ->separator(',')
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) return null;
+
+                        $labels = [
+                            'power'    => __('work-orders.fault_types_options.power'),
+                            'network'  => __('work-orders.fault_types_options.network'),
+                            'device'   => __('work-orders.fault_types_options.device'),
+                            'config'   => __('work-orders.fault_types_options.config'),
+                            'software' => __('work-orders.fault_types_options.software'),
+                            'wiring'   => __('work-orders.fault_types_options.wiring'),
+                        ];
+
+                        $types = is_array($state) ? $state : json_decode($state, true);
+                        return collect($types)->map(fn($type) => $labels[$type] ?? $type)->toArray();
+                    }),
 
                 TextColumn::make('creator.name')
                     ->placeholder('暂无')
@@ -347,6 +382,33 @@ class WorkOrderResource extends Resource
                                 fn(Builder $query, $date): Builder => $query->whereDate('archived_at', '<=', $date),
                             );
                     }),
+
+                // 故障类型筛选
+                Tables\Filters\Filter::make('fault_types')
+                    ->form([
+                        CheckboxList::make('fault_types')
+                            ->options([
+                                'power' => __('work-orders.fault_types_options.power'),
+                                'network' => __('work-orders.fault_types_options.network'),
+                                'device' => __('work-orders.fault_types_options.device'),
+                                'config' => __('work-orders.fault_types_options.config'),
+                                'software' => __('work-orders.fault_types_options.software'),
+                                'wiring' => __('work-orders.fault_types_options.wiring'),
+                            ])
+                            ->label(__('work-orders.fault_types'))
+                            ->columnSpan(2),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['fault_types'],
+                            function (Builder $query, $types) {
+                                foreach ($types as $type) {
+                                    $query->where('fault_types', 'like', "%$type%");
+                                }
+                                return $query;
+                            }
+                        );
+                    }),
             ], layout: FiltersLayout::AboveContentCollapsible)
             ->actions([
                 Action::make('assign')
@@ -428,8 +490,22 @@ class WorkOrderResource extends Resource
                         Textarea::make('repair_details')
                             ->required()
                             ->label(__('work-orders.repair_details')),
+
+                        CheckboxList::make('fault_types')
+                            ->options([
+                                'power'    => __('work-orders.fault_types_options.power'),
+                                'network'  => __('work-orders.fault_types_options.network'),
+                                'device'   => __('work-orders.fault_types_options.device'),
+                                'config'   => __('work-orders.fault_types_options.config'),
+                                'software' => __('work-orders.fault_types_options.software'),
+                                'wiring'   => __('work-orders.fault_types_options.wiring'),
+                            ])
+                            ->required()
+                            ->label('故障类型')
+                            ->helperText('请选择适用的故障类型，可多选'),
                     ])
                     ->action(function (WorkOrder $record, array $data) {
+                        $record->fault_types = $data['fault_types'];
                         $record->submitForReview($data['repair_details']);
                     }),
 
@@ -545,10 +621,10 @@ class WorkOrderResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListWorkOrders::route('/'),
+            'index'  => Pages\ListWorkOrders::route('/'),
             'create' => Pages\CreateWorkOrder::route('/create'),
-            'view' => Pages\ViewWorkOrder::route('/{record}'),
-            'edit' => Pages\EditWorkOrder::route('/{record}/edit'),
+            'view'   => Pages\ViewWorkOrder::route('/{record}'),
+            'edit'   => Pages\EditWorkOrder::route('/{record}/edit'),
         ];
     }
 }
