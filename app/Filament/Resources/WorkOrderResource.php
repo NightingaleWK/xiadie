@@ -670,43 +670,47 @@ class WorkOrderResource extends Resource
                     ->requiresConfirmation()
                     ->icon('heroicon-o-clipboard-document-check')
                     ->color('primary')
-                    ->form([
-                        Textarea::make('repair_details')
-                            ->required()
-                            ->label(__('work-orders.repair_details')),
+                    ->form(function (WorkOrder $record) {
+                        return [
+                            Textarea::make('repair_details')
+                                ->required()
+                                ->default($record->repair_details)
+                                ->label(__('work-orders.repair_details')),
 
-                        CheckboxList::make('fault_types')
-                            ->options([
-                                'power'    => __('work-orders.fault_types_options.power'),
-                                'network'  => __('work-orders.fault_types_options.network'),
-                                'device'   => __('work-orders.fault_types_options.device'),
-                                'config'   => __('work-orders.fault_types_options.config'),
-                                'software' => __('work-orders.fault_types_options.software'),
-                                'wiring'   => __('work-orders.fault_types_options.wiring'),
-                            ])
-                            ->required()
-                            ->label(__('work-orders.fault_types'))
-                            ->helperText('请选择适用的故障类型，可多选'),
+                            CheckboxList::make('fault_types')
+                                ->options([
+                                    'power'    => __('work-orders.fault_types_options.power'),
+                                    'network'  => __('work-orders.fault_types_options.network'),
+                                    'device'   => __('work-orders.fault_types_options.device'),
+                                    'config'   => __('work-orders.fault_types_options.config'),
+                                    'software' => __('work-orders.fault_types_options.software'),
+                                    'wiring'   => __('work-orders.fault_types_options.wiring'),
+                                ])
+                                ->required()
+                                ->default($record->fault_types)
+                                ->label(__('work-orders.fault_types'))
+                                ->helperText('请选择适用的故障类型，可多选'),
 
-                        SpatieMediaLibraryFileUpload::make('repair_attachments')
-                            ->collection('repair_attachments')
-                            ->multiple()
-                            ->maxFiles(6)
-                            ->disk('public')
-                            ->visibility('public')
-                            ->downloadable()
-                            ->openable()
-                            ->label(__('work-orders.repair_attachments'))
-                            ->helperText('可上传维修证明照片或文档（最多6个文件）')
-                            ->acceptedFileTypes(['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
-                            ->imagePreviewHeight('150')
-                            ->loadingIndicatorPosition('left')
-                            ->panelLayout('grid')
-                            ->panelAspectRatio('4:3')
-                            ->uploadProgressIndicatorPosition('center')
-                            ->imageResizeMode('contain')
-                            ->required(),
-                    ])
+                            SpatieMediaLibraryFileUpload::make('repair_attachments')
+                                ->collection('repair_attachments')
+                                ->multiple()
+                                ->maxFiles(6)
+                                ->disk('public')
+                                ->visibility('public')
+                                ->downloadable()
+                                ->openable()
+                                ->label(__('work-orders.repair_attachments'))
+                                ->helperText('可上传维修证明照片或文档（最多6个文件）')
+                                ->acceptedFileTypes(['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                                ->imagePreviewHeight('150')
+                                ->loadingIndicatorPosition('left')
+                                ->panelLayout('grid')
+                                ->panelAspectRatio('4:3')
+                                ->uploadProgressIndicatorPosition('center')
+                                ->imageResizeMode('contain')
+                                ->required(),
+                        ];
+                    })
                     ->action(function (WorkOrder $record, array $data) {
                         $record->fault_types = $data['fault_types'];
                         $record->submitForReview($data['repair_details']);
