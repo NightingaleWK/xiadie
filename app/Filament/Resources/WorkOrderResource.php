@@ -31,6 +31,7 @@ use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 use Filament\Forms\Components\Placeholder;
+use Filament\Notifications\Notification;
 
 class WorkOrderResource extends Resource
 {
@@ -668,52 +669,51 @@ class WorkOrderResource extends Resource
                             $record->assigned_user_id === Auth::id();
                     })
                     ->requiresConfirmation()
+                    ->modalHeading('确认提交审核')
+                    ->modalDescription('提交后将无法再次修改维修信息，确定要提交审核吗？')
+                    ->modalSubmitActionLabel('确认提交')
+                    ->modalCancelActionLabel('取消')
                     ->icon('heroicon-o-clipboard-document-check')
                     ->color('primary')
-                    ->form(function (WorkOrder $record) {
-                        return [
-                            Textarea::make('repair_details')
-                                ->required()
-                                ->default($record->repair_details)
-                                ->label(__('work-orders.repair_details')),
-
-                            CheckboxList::make('fault_types')
-                                ->options([
-                                    'power'    => __('work-orders.fault_types_options.power'),
-                                    'network'  => __('work-orders.fault_types_options.network'),
-                                    'device'   => __('work-orders.fault_types_options.device'),
-                                    'config'   => __('work-orders.fault_types_options.config'),
-                                    'software' => __('work-orders.fault_types_options.software'),
-                                    'wiring'   => __('work-orders.fault_types_options.wiring'),
-                                ])
-                                ->required()
-                                ->default($record->fault_types)
-                                ->label(__('work-orders.fault_types'))
-                                ->helperText('请选择适用的故障类型，可多选'),
-
-                            SpatieMediaLibraryFileUpload::make('repair_attachments')
-                                ->collection('repair_attachments')
-                                ->multiple()
-                                ->maxFiles(6)
-                                ->disk('public')
-                                ->visibility('public')
-                                ->downloadable()
-                                ->openable()
-                                ->label(__('work-orders.repair_attachments'))
-                                ->helperText('可上传维修证明照片或文档（最多6个文件）')
-                                ->acceptedFileTypes(['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
-                                ->imagePreviewHeight('150')
-                                ->loadingIndicatorPosition('left')
-                                ->panelLayout('grid')
-                                ->panelAspectRatio('4:3')
-                                ->uploadProgressIndicatorPosition('center')
-                                ->imageResizeMode('contain')
-                                ->required(),
-                        ];
-                    })
                     ->action(function (WorkOrder $record, array $data) {
-                        $record->fault_types = $data['fault_types'];
-                        $record->submitForReview($data['repair_details']);
+                        // 检查维修详情是否已填写
+                        if (empty($record->repair_details)) {
+                            Notification::make()
+                                ->title('提交失败')
+                                ->body('请先填写维修详情')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // 检查故障类型是否已选择
+                        if (empty($record->fault_types)) {
+                            Notification::make()
+                                ->title('提交失败')
+                                ->body('请先选择故障类型')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // 检查维修附件是否已上传
+                        if ($record->getMedia('repair_attachments')->count() === 0) {
+                            Notification::make()
+                                ->title('提交失败')
+                                ->body('请先上传维修附件')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        // 提交审核
+                        $record->submitForReview($record->repair_details);
+
+                        Notification::make()
+                            ->title('提交成功')
+                            ->body('工单已提交审核')
+                            ->success()
+                            ->send();
                     }),
 
                 Action::make('approve')
