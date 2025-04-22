@@ -56,14 +56,40 @@ class WorkOrderResource extends Resource
                                             ->required()
                                             ->maxLength(255)
                                             ->label(__('work-orders.title'))
-                                            ->columnSpanFull(),
+                                            ->columnSpanFull()
+                                            ->disabled(function ($record) {
+                                                // 新建工单时不禁用
+                                                if (!$record) return false;
+
+                                                // 超级管理员可以编辑
+                                                if (Auth::user()->hasRole('super_admin')) return false;
+
+                                                // 非创建者无法编辑
+                                                if (Auth::id() !== $record->creator_user_id) return true;
+
+                                                // 创建者只能在待指派状态下编辑
+                                                return $record->status->getValue() !== 'pending_assignment';
+                                            }),
 
                                         Textarea::make('description')
                                             ->required()
                                             ->columnSpanFull()
                                             ->autosize()
                                             ->label(__('work-orders.description'))
-                                            ->columnSpanFull(),
+                                            ->columnSpanFull()
+                                            ->disabled(function ($record) {
+                                                // 新建工单时不禁用
+                                                if (!$record) return false;
+
+                                                // 超级管理员可以编辑
+                                                if (Auth::user()->hasRole('super_admin')) return false;
+
+                                                // 非创建者无法编辑
+                                                if (Auth::id() !== $record->creator_user_id) return true;
+
+                                                // 创建者只能在待指派状态下编辑
+                                                return $record->status->getValue() !== 'pending_assignment';
+                                            }),
 
                                         Select::make('project_id')
                                             ->required()
@@ -72,7 +98,20 @@ class WorkOrderResource extends Resource
                                             ->searchable()
                                             ->native(false)
                                             ->optionsLimit(20)
-                                            ->label(__('work-orders.project_id')),
+                                            ->label(__('work-orders.project_id'))
+                                            ->disabled(function ($record) {
+                                                // 新建工单时不禁用
+                                                if (!$record) return false;
+
+                                                // 超级管理员可以编辑
+                                                if (Auth::user()->hasRole('super_admin')) return false;
+
+                                                // 非创建者无法编辑
+                                                if (Auth::id() !== $record->creator_user_id) return true;
+
+                                                // 创建者只能在待指派状态下编辑
+                                                return $record->status->getValue() !== 'pending_assignment';
+                                            }),
 
                                         DateTimePicker::make('created_at')
                                             ->label('工单创建时间')
@@ -103,7 +142,20 @@ class WorkOrderResource extends Resource
                                             ->panelLayout('grid')
                                             ->panelAspectRatio('4:3')
                                             ->uploadProgressIndicatorPosition('center')
-                                            ->imageResizeMode('contain'),
+                                            ->imageResizeMode('contain')
+                                            ->disabled(function ($record) {
+                                                // 新建工单时不禁用
+                                                if (!$record) return false;
+
+                                                // 超级管理员可以编辑
+                                                if (Auth::user()->hasRole('super_admin')) return false;
+
+                                                // 非创建者无法编辑
+                                                if (Auth::id() !== $record->creator_user_id) return true;
+
+                                                // 创建者只能在待指派状态下编辑
+                                                return $record->status->getValue() !== 'pending_assignment';
+                                            }),
                                     ])
                                     ->columnSpan(2),
                             ])
@@ -169,15 +221,38 @@ class WorkOrderResource extends Resource
                                             ])
                                             ->label(__('work-orders.fault_types'))
                                             // ->placeholder('暂无')
-                                            ->disabled()
+                                            ->disabled(function ($record) {
+                                                // 超级管理员可以编辑
+                                                if (Auth::user()->hasRole('super_admin')) return false;
+
+                                                // 必须是维修人员
+                                                if (!Auth::user()->hasRole('repairer')) return true;
+
+                                                // 必须是指派给当前用户的工单
+                                                if ($record && $record->assigned_user_id !== Auth::id()) return true;
+
+                                                // 只有在维修中状态才能编辑
+                                                return $record && $record->status->getValue() !== 'in_progress';
+                                            })
                                             ->columns(3)
                                             ->gridDirection('row'),
 
                                         Textarea::make('repair_details')
-                                            ->disabled()
+                                            ->disabled(function ($record) {
+                                                // 超级管理员可以编辑
+                                                if (Auth::user()->hasRole('super_admin')) return false;
+
+                                                // 必须是维修人员
+                                                if (!Auth::user()->hasRole('repairer')) return true;
+
+                                                // 必须是指派给当前用户的工单
+                                                if ($record && $record->assigned_user_id !== Auth::id()) return true;
+
+                                                // 只有在维修中状态才能编辑
+                                                return $record && $record->status->getValue() !== 'in_progress';
+                                            })
                                             ->autosize()
                                             ->label(__('work-orders.repair_details')),
-
 
                                         DateTimePicker::make('completed_at')
                                             ->disabled()
@@ -207,7 +282,20 @@ class WorkOrderResource extends Resource
                                             ->panelLayout('grid')
                                             ->panelAspectRatio('4:3')
                                             ->uploadProgressIndicatorPosition('center')
-                                            ->imageResizeMode('contain'),
+                                            ->imageResizeMode('contain')
+                                            ->disabled(function ($record) {
+                                                // 超级管理员可以编辑
+                                                if (Auth::user()->hasRole('super_admin')) return false;
+
+                                                // 非维修人员无法编辑
+                                                if (!Auth::user()->hasRole('repairer')) return true;
+
+                                                // 必须是指派给当前用户的工单
+                                                if ($record && $record->assigned_user_id !== Auth::id()) return true;
+
+                                                // 只有在维修中状态才能编辑
+                                                return $record && $record->status->getValue() !== 'in_progress';
+                                            }),
                                     ])->columnSpan(2),
                             ])
                             ->columns(5),
@@ -606,6 +694,8 @@ class WorkOrderResource extends Resource
                             ->maxFiles(6)
                             ->disk('public')
                             ->visibility('public')
+                            ->downloadable()
+                            ->openable()
                             ->label(__('work-orders.repair_attachments'))
                             ->helperText('可上传维修证明照片或文档（最多6个文件）')
                             ->acceptedFileTypes(['image/*', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
@@ -614,7 +704,8 @@ class WorkOrderResource extends Resource
                             ->panelLayout('grid')
                             ->panelAspectRatio('4:3')
                             ->uploadProgressIndicatorPosition('center')
-                            ->imageResizeMode('contain'),
+                            ->imageResizeMode('contain')
+                            ->required(),
                     ])
                     ->action(function (WorkOrder $record, array $data) {
                         $record->fault_types = $data['fault_types'];
