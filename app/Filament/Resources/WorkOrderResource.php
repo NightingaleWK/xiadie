@@ -37,6 +37,8 @@ class WorkOrderResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $isCreatePage = request()->routeIs('filament.admin.resources.work-orders.create');
+
         return $form
             ->schema([
                 Section::make(__('work-orders.sections.basic_info'))
@@ -103,11 +105,13 @@ class WorkOrderResource extends Resource
                         Select::make('assigned_user_id')
                             ->native(false)
                             ->relationship('assignedUser', 'name')
+                            ->disabled()
                             ->label(__('work-orders.assigned_user_id')),
 
                         Select::make('reviewer_user_id')
                             ->native(false)
                             ->relationship('reviewer', 'name')
+                            ->disabled()
                             ->label(__('work-orders.reviewer_user_id')),
                     ])->columns(2),
 
@@ -115,19 +119,23 @@ class WorkOrderResource extends Resource
                     ->schema([
                         Textarea::make('repair_details')
                             ->columnSpanFull()
+                            ->disabled()
                             ->autosize()
                             ->label(__('work-orders.repair_details')),
 
                         Textarea::make('rejection_reason')
                             ->columnSpanFull()
+                            ->disabled()
                             ->autosize()
                             ->label(__('work-orders.rejection_reason')),
 
                         DateTimePicker::make('completed_at')
+                            ->disabled()
                             ->columnSpan(1)
                             ->label(__('work-orders.completed_at')),
 
                         DateTimePicker::make('archived_at')
+                            ->disabled()
                             ->columnSpan(1)
                             ->label(__('work-orders.archived_at')),
                     ])->columns(2),
