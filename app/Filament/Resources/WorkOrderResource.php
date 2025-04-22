@@ -22,6 +22,10 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use Illuminate\Support\Facades\Auth;
+use App\States\PendingAssignment;
+use App\States\Rejected;
+use Filament\Support\Enums\MaxWidth;
+use Filament\Tables\Enums\FiltersLayout;
 
 class WorkOrderResource extends Resource
 {
@@ -50,6 +54,14 @@ class WorkOrderResource extends Resource
                             ->label(__('work-orders.description'))
                             ->columnSpanFull(),
 
+                        Select::make('project_id')
+                            ->relationship('project', 'name')
+                            ->preload()
+                            ->searchable()
+                            ->native(false)
+                            ->optionsLimit(20)
+                            ->label(__('work-orders.project_id')),
+
                         DateTimePicker::make('created_at')
                             ->label('工单创建时间')
                             ->disabled(),
@@ -57,7 +69,7 @@ class WorkOrderResource extends Resource
                         DateTimePicker::make('updated_at')
                             ->label('工单最后更新时间')
                             ->disabled(),
-                    ])->columns(2),
+                    ])->columns(3),
 
                 Section::make(__('work-orders.sections.status_info'))
                     ->schema([
@@ -133,6 +145,13 @@ class WorkOrderResource extends Resource
                     ->wrap()
                     ->label(__('work-orders.title')),
 
+                TextColumn::make('project.name')
+                    ->placeholder('暂无关联项目')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->label(__('work-orders.project_id')),
+
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
@@ -176,19 +195,150 @@ class WorkOrderResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')
-                    ->native(false)
-                    ->options([
-                        'pending_assignment' => __('work-orders.statuses.pending_assignment'),
-                        'assigned' => __('work-orders.statuses.assigned'),
-                        'in_progress' => __('work-orders.statuses.in_progress'),
-                        'pending_review' => __('work-orders.statuses.pending_review'),
-                        'rejected' => __('work-orders.statuses.rejected'),
-                        'completed' => __('work-orders.statuses.completed'),
-                        'archived' => __('work-orders.statuses.archived'),
+                // 标题关键字搜索
+                Tables\Filters\Filter::make('title')
+                    ->form([
+                        Forms\Components\TextInput::make('title')
+                            ->label('标题关键字')
+                            ->placeholder('输入工单标题关键字')
+                            ->columnSpan(2),
                     ])
-                    ->label(__('work-orders.status')),
-            ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['title'],
+                                fn(Builder $query, $title): Builder => $query->where('title', 'like', "%{$title}%")
+                            );
+                    }),
+
+                // 项目筛选
+                Tables\Filters\SelectFilter::make('project_id')
+                    ->label(__('work-orders.project_id'))
+                    ->relationship('project', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->native(false),
+
+                // 创建人筛选
+                Tables\Filters\SelectFilter::make('creator_user_id')
+                    ->label(__('work-orders.creator_user_id'))
+                    ->relationship('creator', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->native(false),
+
+                // 维修人筛选
+                Tables\Filters\SelectFilter::make('assigned_user_id')
+                    ->label(__('work-orders.assigned_user_id'))
+                    ->relationship('assignedUser', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->native(false),
+
+                // 审核人筛选
+                Tables\Filters\SelectFilter::make('reviewer_user_id')
+                    ->label(__('work-orders.reviewer_user_id'))
+                    ->relationship('reviewer', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->native(false),
+
+                // 创建日期范围筛选
+                Tables\Filters\Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('created_from')
+                            ->displayFormat('Y-m-d')
+                            ->label('创建日期从')
+                            ->native(false),
+                        Forms\Components\DatePicker::make('created_until')
+                            ->displayFormat('Y-m-d')
+                            ->label('创建日期至')
+                            ->native(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['created_from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    }),
+
+                // 更新日期范围筛选
+                Tables\Filters\Filter::make('updated_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('updated_from')
+                            ->displayFormat('Y-m-d')
+                            ->label('更新日期从')
+                            ->native(false),
+                        Forms\Components\DatePicker::make('updated_until')
+                            ->displayFormat('Y-m-d')
+                            ->label('更新日期至')
+                            ->native(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['updated_from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('updated_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['updated_until'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('updated_at', '<=', $date),
+                            );
+                    }),
+
+                // 完成日期范围筛选
+                Tables\Filters\Filter::make('completed_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('completed_from')
+                            ->displayFormat('Y-m-d')
+                            ->label('完成审核日期从')
+                            ->native(false),
+                        Forms\Components\DatePicker::make('completed_until')
+                            ->displayFormat('Y-m-d')
+                            ->label('完成审核日期至')
+                            ->native(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['completed_from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('completed_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['completed_until'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('completed_at', '<=', $date),
+                            );
+                    }),
+
+                // 归档日期范围筛选
+                Tables\Filters\Filter::make('archived_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('archived_from')
+                            ->displayFormat('Y-m-d')
+                            ->label('归档日期从')
+                            ->native(false),
+                        Forms\Components\DatePicker::make('archived_until')
+                            ->label('归档日期至')
+                            ->displayFormat('Y-m-d')
+                            ->native(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['archived_from'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('archived_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['archived_until'],
+                                fn(Builder $query, $date): Builder => $query->whereDate('archived_at', '<=', $date),
+                            );
+                    }),
+            ], layout: FiltersLayout::AboveContentCollapsible)
             ->actions([
                 Action::make('assign')
                     ->label(__('work-orders.actions.assign'))

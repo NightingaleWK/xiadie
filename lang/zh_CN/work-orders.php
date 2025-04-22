@@ -9,6 +9,7 @@ return [
     'title' => '标题',
     'description' => '描述',
     'status' => '状态',
+    'project_id' => '关联项目',
     'creator_user_id' => '创建人',
     'assigned_user_id' => '维修人',
     'reviewer_user_id' => '审核人',

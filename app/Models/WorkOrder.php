@@ -40,6 +40,7 @@ class WorkOrder extends Model
         'rejection_reason',
         'completed_at',
         'archived_at',
+        'project_id',
     ];
 
     /**
@@ -60,6 +61,14 @@ class WorkOrder extends Model
     protected $casts = [
         'status' => WorkOrderState::class,
     ];
+
+    /**
+     * 获取关联的项目
+     */
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
 
     /**
      * 获取工单创建者

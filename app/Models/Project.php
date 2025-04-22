@@ -71,4 +71,12 @@ class Project extends Model
     {
         return self::getStatusOptions()[$this->status] ?? $this->status;
     }
+
+    /**
+     * 获取项目关联的工单
+     */
+    public function workOrders()
+    {
+        return $this->hasMany(WorkOrder::class);
+    }
 }

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('title')->comment('工单标题');
             $table->text('description')->comment('工单描述');
             $table->string('status')->comment('当前状态（状态机标识符）');
+            $table->foreignId('project_id')->nullable()->comment('关联项目ID')->constrained('projects');
             $table->foreignId('creator_user_id')->comment('发起人ID')->constrained('users');
             $table->foreignId('assigned_user_id')->nullable()->comment('当前处理人/维修人ID')->constrained('users');
             $table->foreignId('reviewer_user_id')->nullable()->comment('审核人ID')->constrained('users');
