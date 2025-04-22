@@ -26,6 +26,7 @@ use App\States\PendingAssignment;
 use App\States\Rejected;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Tables\Enums\FiltersLayout;
+use App\Events\WorkOrderStatusChanged;
 
 class WorkOrderResource extends Resource
 {
@@ -351,6 +352,9 @@ class WorkOrderResource extends Resource
                 Action::make('assign')
                     ->label(__('work-orders.actions.assign'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_assignment')
+                    ->requiresConfirmation()
+                    ->icon('heroicon-o-user-plus')
+                    ->color('primary')
                     ->action(function (WorkOrder $record, array $data) {
                         $user = \App\Models\User::find($data['assigned_user_id']);
                         $record->assignTo($user, $data['notes']);
@@ -372,13 +376,35 @@ class WorkOrderResource extends Resource
                 Action::make('start_repair')
                     ->label(__('work-orders.actions.start_repair'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'assigned')
+                    ->requiresConfirmation()
+                    ->icon('heroicon-o-play')
+                    ->color('success')
                     ->action(function (WorkOrder $record) {
                         $record->startRepair();
+                    }),
+
+                Action::make('refuse_assignment')
+                    ->label(__('work-orders.actions.refuse_assignment'))
+                    ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'assigned')
+                    ->color('danger')
+                    ->icon('heroicon-o-x-circle')
+                    ->requiresConfirmation()
+                    ->form([
+                        Textarea::make('reason')
+                            ->label('拒绝原因')
+                            ->required()
+                            ->placeholder('请说明拒绝接受任务的原因')
+                    ])
+                    ->action(function (WorkOrder $record, array $data) {
+                        $record->refuseAssignment($data['reason']);
                     }),
 
                 Action::make('submit_review')
                     ->label(__('work-orders.actions.submit_review'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'in_progress')
+                    ->requiresConfirmation()
+                    ->icon('heroicon-o-clipboard-document-check')
+                    ->color('primary')
                     ->form([
                         Textarea::make('repair_details')
                             ->required()
@@ -391,6 +417,9 @@ class WorkOrderResource extends Resource
                 Action::make('approve')
                     ->label(__('work-orders.actions.approve'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_review')
+                    ->requiresConfirmation()
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
                     ->action(function (WorkOrder $record) {
                         $record->reviewer_user_id = Auth::id();
                         $record->approve();
@@ -399,6 +428,9 @@ class WorkOrderResource extends Resource
                 Action::make('reject')
                     ->label(__('work-orders.actions.reject'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'pending_review')
+                    ->requiresConfirmation()
+                    ->color('danger')
+                    ->icon('heroicon-o-x-circle')
                     ->form([
                         Textarea::make('rejection_reason')
                             ->required()
@@ -412,6 +444,9 @@ class WorkOrderResource extends Resource
                 Action::make('restart_repair')
                     ->label(__('work-orders.actions.restart_repair'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'rejected')
+                    ->requiresConfirmation()
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
                     ->action(function (WorkOrder $record) {
                         $record->restartRepair();
                     }),
@@ -419,6 +454,9 @@ class WorkOrderResource extends Resource
                 Action::make('archive')
                     ->label(__('work-orders.actions.archive'))
                     ->visible(fn(WorkOrder $record) => $record->status->getValue() === 'completed')
+                    ->requiresConfirmation()
+                    ->icon('heroicon-o-archive-box')
+                    ->color('gray')
                     ->action(function (WorkOrder $record) {
                         $record->archive();
                     }),

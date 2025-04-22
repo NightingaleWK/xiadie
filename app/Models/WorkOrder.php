@@ -213,18 +213,23 @@ class WorkOrder extends Model
     /**
      * 拒绝指派
      */
-    public function refuseAssignment(): void
+    public function refuseAssignment(?string $reason = null): void
     {
         $this->assigned_user_id = null;
         $this->status->transitionTo(PendingAssignment::class);
         $this->save();
+
+        $message = __('work-orders.messages.refused_assignment');
+        if ($reason) {
+            $message .= '。原因：' . $reason;
+        }
 
         event(new WorkOrderStatusChanged(
             $this,
             'refuse_assignment',
             'assigned',
             'pending_assignment',
-            __('work-orders.messages.refused_assignment')
+            $message
         ));
     }
 
