@@ -158,18 +158,23 @@ class WorkOrder extends Model
     /**
      * 审核通过
      */
-    public function approve(): void
+    public function approve(?string $comment = null): void
     {
         $this->completed_at = now();
         $this->status->transitionTo(Completed::class);
         $this->save();
+
+        $message = __('work-orders.messages.approved');
+        if ($comment) {
+            $message .= '。审核意见：' . $comment;
+        }
 
         event(new WorkOrderStatusChanged(
             $this,
             'approve',
             'pending_review',
             'completed',
-            __('work-orders.messages.approved')
+            $message
         ));
     }
 
@@ -236,18 +241,23 @@ class WorkOrder extends Model
     /**
      * 归档工单
      */
-    public function archive(): void
+    public function archive(?string $comment = null): void
     {
         $this->archived_at = now();
         $this->status->transitionTo(Archived::class);
         $this->save();
+
+        $message = __('work-orders.messages.archived');
+        if ($comment) {
+            $message .= '。归档意见：' . $comment;
+        }
 
         event(new WorkOrderStatusChanged(
             $this,
             'archive',
             'completed',
             'archived',
-            __('work-orders.messages.archived')
+            $message
         ));
     }
 }

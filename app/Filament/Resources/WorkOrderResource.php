@@ -420,9 +420,14 @@ class WorkOrderResource extends Resource
                     ->requiresConfirmation()
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->action(function (WorkOrder $record) {
+                    ->form([
+                        Textarea::make('comment')
+                            ->label('审核意见')
+                            ->placeholder('请输入审核通过意见（选填）')
+                    ])
+                    ->action(function (WorkOrder $record, array $data) {
                         $record->reviewer_user_id = Auth::id();
-                        $record->approve();
+                        $record->approve($data['comment'] ?? null);
                     }),
 
                 Action::make('reject')
@@ -457,8 +462,13 @@ class WorkOrderResource extends Resource
                     ->requiresConfirmation()
                     ->icon('heroicon-o-archive-box')
                     ->color('gray')
-                    ->action(function (WorkOrder $record) {
-                        $record->archive();
+                    ->form([
+                        Textarea::make('comment')
+                            ->label('归档意见')
+                            ->placeholder('请输入归档意见（选填）')
+                    ])
+                    ->action(function (WorkOrder $record, array $data) {
+                        $record->archive($data['comment'] ?? null);
                     }),
 
                 ActionGroup::make([
