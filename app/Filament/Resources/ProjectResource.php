@@ -7,6 +7,7 @@ use App\Filament\Resources\ProjectResource\RelationManagers;
 use App\Models\Project;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -61,14 +62,20 @@ class ProjectResource extends Resource
                     ->schema([
                         DatePicker::make('start_date')
                             ->label(__('projects.start_date'))
+                            ->format('Y-m-d')
+                            ->native(false)
                             ->columnSpan(1),
 
                         DatePicker::make('operation_date')
                             ->label(__('projects.operation_date'))
+                            ->format('Y-m-d')
+                            ->native(false)
                             ->columnSpan(1),
 
                         DatePicker::make('end_date')
                             ->label(__('projects.end_date'))
+                            ->format('Y-m-d')
+                            ->native(false)
                             ->columnSpan(1),
                     ]),
 
@@ -110,13 +117,13 @@ class ProjectResource extends Resource
                 Section::make(__('projects.sections.status_info'))
                     ->columns(3)
                     ->schema([
-                        Select::make('status')
+                        Radio::make('status')
                             ->label(__('projects.status'))
                             ->required()
-                            ->native(false)
                             ->options(Project::getStatusOptions())
                             ->default('planning')
-                            ->columnSpan(1),
+                            ->inline()
+                            ->columnSpanFull(),
 
                         Textarea::make('remarks')
                             ->label(__('projects.remarks'))
@@ -140,17 +147,20 @@ class ProjectResource extends Resource
 
                 TextColumn::make('start_date')
                     ->label(__('projects.start_date'))
-                    ->date()
+                    ->placeholder('暂无')
+                    ->date('Y-m-d')
                     ->sortable(),
 
                 TextColumn::make('operation_date')
                     ->label(__('projects.operation_date'))
-                    ->date()
+                    ->placeholder('暂无')
+                    ->date('Y-m-d')
                     ->sortable(),
 
                 TextColumn::make('end_date')
                     ->label(__('projects.end_date'))
-                    ->date()
+                    ->placeholder('暂无')
+                    ->date('Y-m-d')
                     ->sortable(),
 
                 TextColumn::make('project_manager')
